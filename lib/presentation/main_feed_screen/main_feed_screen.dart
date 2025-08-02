@@ -122,13 +122,27 @@ class _MainFeedScreenState extends State<MainFeedScreen>
     }
   }
 
-  void _onPostLikeChanged() {
-    // Refresh the current posts to get updated like counts
-    if (_selectedCategoryId == null) {
-      _loadData();
-    } else {
-      _loadPostsByCategory(_selectedCategoryId);
-    }
+  void _onPostLikeChanged(String postId, bool isLiked) {
+    setState(() {
+      // Actualiza solo el post afectado en la lista principal
+      final idx = _posts.indexWhere((p) => p.id == postId);
+      if (idx != -1) {
+        final post = _posts[idx];
+        _posts[idx] = post.copyWith(
+          isLikedByCurrentUser: isLiked,
+          likeCount: (post.likeCount + (isLiked ? 1 : -1)).clamp(0, 1 << 30),
+        );
+      }
+      // También actualiza en featured si aplica
+      final fidx = _featuredPosts.indexWhere((p) => p.id == postId);
+      if (fidx != -1) {
+        final post = _featuredPosts[fidx];
+        _featuredPosts[fidx] = post.copyWith(
+          isLikedByCurrentUser: isLiked,
+          likeCount: (post.likeCount + (isLiked ? 1 : -1)).clamp(0, 1 << 30),
+        );
+      }
+    });
   }
 
   Widget _buildFeedTab() {
@@ -160,100 +174,110 @@ class _MainFeedScreenState extends State<MainFeedScreen>
     }
 
     return RefreshIndicator(
-        onRefresh: () => _selectedCategoryId == null
-            ? _loadData()
-            : _loadPostsByCategory(_selectedCategoryId),
-        child: CustomScrollView(slivers: [
-          // Categories filter
-          SliverToBoxAdapter(
-              child: Container(
-                  height: 6.h,
-                  margin: EdgeInsets.symmetric(vertical: 1.h),
-                  child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      padding: EdgeInsets.symmetric(horizontal: 4.w),
-                      children: [
-                        // All posts chip
-                        _buildCategoryChip(
-                            'All Posts',
-                            _selectedCategoryId == null,
-                            () => _loadPostsByCategory(null)),
-                        SizedBox(width: 2.w),
-                        // Category chips
-                        ..._categories
-                            .map((category) => Padding(
-                                padding: EdgeInsets.only(right: 2.w),
-                                child: _buildCategoryChip(
-                                    category.name,
-                                    _selectedCategoryId == category.id,
-                                    () => _loadPostsByCategory(category.id))))
-                            .toList(),
-                      ]))),
-
-          // Featured posts section (only show when "All Posts" is selected)
-          if (_selectedCategoryId == null && _featuredPosts.isNotEmpty)
-            SliverToBoxAdapter(
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+      onRefresh: () => _selectedCategoryId == null
+          ? _loadData()
+          : _loadPostsByCategory(_selectedCategoryId),
+      child: CustomScrollView(slivers: [
+        // Categories filter
+        SliverToBoxAdapter(
+            child: Container(
+                height: 6.h,
+                margin: EdgeInsets.symmetric(vertical: 1.h),
+                child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    padding: EdgeInsets.symmetric(horizontal: 4.w),
                     children: [
-                  Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
-                      child: Text('Featured Posts',
-                          style: GoogleFonts.inter(
-                              fontSize: 18.sp,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87))),
-                  ..._featuredPosts
-                      .map((post) => PostCardWidget(
-                          post: post, onLikeChanged: _onPostLikeChanged))
-                      .toList(),
-                  Divider(height: 3.h, thickness: 1.5, color: Colors.grey[200]),
-                ])),
+                      // All posts chip
+                      _buildCategoryChip(
+                          'All Posts',
+                          _selectedCategoryId == null,
+                          () => _loadPostsByCategory(null)),
+                      SizedBox(width: 2.w),
+                      // Category chips
+                      ..._categories
+                          .map((category) => Padding(
+                              padding: EdgeInsets.only(right: 2.w),
+                              child: _buildCategoryChip(
+                                  category.name,
+                                  _selectedCategoryId == category.id,
+                                  () => _loadPostsByCategory(category.id))))
+                          .toList(),
+                    ]))),
 
-          // All posts section
+        // Featured posts section (only show when "All Posts" is selected)
+        if (_selectedCategoryId == null && _featuredPosts.isNotEmpty)
           SliverToBoxAdapter(
-              child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
-                  child: Text(
-                      _selectedCategoryId == null ? 'All Posts' : 'Posts',
-                      style: GoogleFonts.inter(
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87)))),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                Padding(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 4.w, vertical: 0.4.h),
+                    child: Text('Featured Posts',
+                        style: GoogleFonts.inter(
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87))),
+                ..._featuredPosts
+                    .map((post) => PostCardWidget(
+                        post: post,
+                        onLikeChanged: (isLiked) =>
+                            _onPostLikeChanged(post.id, isLiked)))
+                    .toList(),
+                Divider(height: 3.h, thickness: 1.5, color: Colors.grey[200]),
+              ])),
 
-          // Posts list
-          SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-            final post = _posts[index];
-            return PostCardWidget(
-                post: post, onLikeChanged: _onPostLikeChanged);
-          }, childCount: _posts.length)),
+        // All posts section
+        SliverToBoxAdapter(
+            child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 0.4.h),
+                child: Text(_selectedCategoryId == null ? 'All Posts' : 'Posts',
+                    style: GoogleFonts.inter(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87)))),
 
-          // Bottom padding
-          SliverToBoxAdapter(child: SizedBox(height: 10.h)),
-        ]));
+        // Posts list
+        SliverList(
+            delegate: SliverChildBuilderDelegate((context, index) {
+          final post = _posts[index];
+          return PostCardWidget(
+              post: post,
+              onLikeChanged: (isLiked) => _onPostLikeChanged(post.id, isLiked));
+        }, childCount: _posts.length)),
+
+        // Bottom padding
+        SliverToBoxAdapter(child: SizedBox(height: 10.h)),
+      ]),
+    );
   }
 
   Widget _buildCategoryChip(String label, bool isSelected, VoidCallback onTap) {
     return GestureDetector(
-        onTap: onTap,
-        child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
-            decoration: BoxDecoration(
-                color: isSelected
-                    ? Theme.of(context).primaryColor
-                    : Colors.grey[100],
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                    color: isSelected
-                        ? Theme.of(context).primaryColor
-                        : Colors.grey[300]!)),
-            child: Text(label,
-                style: GoogleFonts.inter(
-                    fontSize: 11.sp,
-                    fontWeight: FontWeight.w500,
-                    color: isSelected ? Colors.white : Colors.grey[700]))));
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 0.4.h),
+        decoration: BoxDecoration(
+          color: isSelected ? Theme.of(context).primaryColor : Colors.grey[100],
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+              color: isSelected
+                  ? Theme.of(context).primaryColor
+                  : Colors.grey[300]!),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 11.sp,
+              fontWeight: FontWeight.w500,
+              color: isSelected ? Colors.white : Colors.grey[700],
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    );
   }
 
   @override

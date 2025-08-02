@@ -5,11 +5,12 @@ import '../../../models/post.dart';
 import '../../../services/posts_service.dart';
 import '../../../services/auth_service.dart';
 import '../../../widgets/custom_image_widget.dart';
+import '../../../widgets/app_snackbar.dart';
 
 class PostCardWidget extends StatefulWidget {
   final Post post;
   final VoidCallback? onTap;
-  final VoidCallback? onLikeChanged;
+  final ValueChanged<bool>? onLikeChanged;
 
   const PostCardWidget({
     Key? key,
@@ -45,7 +46,7 @@ class _PostCardWidgetState extends State<PostCardWidget> {
 
     try {
       await PostsService.instance.toggleLike(widget.post.id);
-      widget.onLikeChanged?.call();
+      widget.onLikeChanged?.call(_isLiked);
     } catch (error) {
       // Revert changes on error
       setState(() {
@@ -54,9 +55,8 @@ class _PostCardWidgetState extends State<PostCardWidget> {
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Failed to update like: $error'),
-            backgroundColor: Colors.red));
+        showAppSnackBar(context, 'Error al actualizar el like: $error',
+            error: true);
       }
     } finally {
       if (mounted) {

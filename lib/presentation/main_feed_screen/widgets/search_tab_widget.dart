@@ -7,7 +7,7 @@ import '../../../services/posts_service.dart';
 import './post_card_widget.dart';
 
 class SearchTabWidget extends StatefulWidget {
-  final VoidCallback? onPostLikeChanged;
+  final void Function(String postId, bool isLiked)? onPostLikeChanged;
 
   const SearchTabWidget({
     Key? key,
@@ -48,7 +48,6 @@ class _SearchTabWidgetState extends State<SearchTabWidget> {
       });
 
       final results = await PostsService.instance.searchPosts(query.trim());
-
       if (mounted) {
         setState(() {
           _searchResults = results;
@@ -177,9 +176,19 @@ class _SearchTabWidgetState extends State<SearchTabWidget> {
       padding: EdgeInsets.symmetric(vertical: 1.h),
       itemCount: _searchResults.length,
       itemBuilder: (context, index) {
+        final post = _searchResults[index];
         return PostCardWidget(
-          post: _searchResults[index],
-          onLikeChanged: widget.onPostLikeChanged,
+          post: post,
+          onLikeChanged: (isLiked) {
+            setState(() {
+              _searchResults[index] = post.copyWith(
+                isLikedByCurrentUser: isLiked,
+                likeCount:
+                    (post.likeCount + (isLiked ? 1 : -1)).clamp(0, 1 << 30),
+              );
+            });
+            widget.onPostLikeChanged?.call(post.id, isLiked);
+          },
         );
       },
     );

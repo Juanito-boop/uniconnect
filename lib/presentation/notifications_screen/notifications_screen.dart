@@ -180,71 +180,135 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: AppTheme.lightTheme.colorScheme.surface,
-      elevation: 1,
-      leading: IconButton(
-        onPressed: () => Navigator.pop(context),
-        icon: CustomIconWidget(
-          iconName: 'arrow_back',
-          color: AppTheme.lightTheme.colorScheme.onSurface,
-          size: 6.w,
-        ),
-      ),
-      title: Row(
-        children: [
-          CustomIconWidget(
-            iconName: 'notifications',
-            color: AppTheme.lightTheme.colorScheme.primary,
-            size: 6.w,
-          ),
-          SizedBox(width: 2.w),
-          Text(
-            'Notificaciones',
-            style: AppTheme.lightTheme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          if (_unreadCount > 0) ...[
-            SizedBox(width: 2.w),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.5.h),
-              decoration: BoxDecoration(
-                color: AppTheme.lightTheme.colorScheme.error,
-                borderRadius: BorderRadius.circular(12),
+    return PreferredSize(
+      preferredSize: Size.fromHeight(90),
+      child: Container(
+        color: AppTheme.lightTheme.colorScheme.surface,
+        padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Back button
+            Padding(
+              padding: EdgeInsets.only(left: 2.w, top: 16),
+              child: IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: CustomIconWidget(
+                  iconName: 'arrow_back',
+                  color: AppTheme.lightTheme.colorScheme.onSurface,
+                  size: 6.w,
+                ),
               ),
-              child: Text(
-                _unreadCount > 99 ? '99+' : _unreadCount.toString(),
-                style: AppTheme.lightTheme.textTheme.labelSmall?.copyWith(
-                  color: AppTheme.lightTheme.colorScheme.onError,
-                  fontWeight: FontWeight.w600,
+            ),
+            // Icon + badge + title + subtitle
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(left: 2.w, top: 12, bottom: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            CustomIconWidget(
+                              iconName: 'notifications',
+                              color: AppTheme.lightTheme.colorScheme.primary,
+                              size: 8.w,
+                            ),
+                            if (_unreadCount > 0)
+                              Positioned(
+                                right: -2,
+                                top: -4,
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 1.5.w, vertical: 0.2.h),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        AppTheme.lightTheme.colorScheme.error,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                        color: Colors.white, width: 1),
+                                  ),
+                                  child: Text(
+                                    _unreadCount > 99
+                                        ? '99+'
+                                        : _unreadCount.toString(),
+                                    style: AppTheme
+                                        .lightTheme.textTheme.labelSmall
+                                        ?.copyWith(
+                                      color: AppTheme
+                                          .lightTheme.colorScheme.onError,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 10.sp,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        SizedBox(width: 2.w),
+                        Expanded(
+                          child: Text(
+                            'Notificaciones',
+                            style: AppTheme.lightTheme.textTheme.titleLarge
+                                ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18.sp,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
+                        if (_unreadCount > 0)
+                          Padding(
+                            padding: EdgeInsets.only(left: 2.w),
+                            child: TextButton(
+                              onPressed: _markAllAsRead,
+                              child: Text(
+                                'Marcar todas',
+                                style: AppTheme.lightTheme.textTheme.labelMedium
+                                    ?.copyWith(
+                                  color:
+                                      AppTheme.lightTheme.colorScheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                        IconButton(
+                          onPressed: _showNotificationSettings,
+                          icon: CustomIconWidget(
+                            iconName: 'settings',
+                            color: AppTheme.lightTheme.colorScheme.onSurface,
+                            size: 6.w,
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (_unreadCount > 0)
+                      Padding(
+                        padding: EdgeInsets.only(left: 1.5.w, top: 2),
+                        child: Text(
+                          '$_unreadCount sin leer',
+                          style:
+                              AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
+                            color: AppTheme.lightTheme.colorScheme.primary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
           ],
-        ],
-      ),
-      actions: [
-        if (_unreadCount > 0)
-          TextButton(
-            onPressed: _markAllAsRead,
-            child: Text(
-              'Marcar todas',
-              style: AppTheme.lightTheme.textTheme.labelMedium?.copyWith(
-                color: AppTheme.lightTheme.colorScheme.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        IconButton(
-          onPressed: _showNotificationSettings,
-          icon: CustomIconWidget(
-            iconName: 'settings',
-            color: AppTheme.lightTheme.colorScheme.onSurface,
-            size: 6.w,
-          ),
         ),
-      ],
+      ),
     );
   }
 

@@ -2,13 +2,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch",
-            "request": "launch",
+            "name": "Flutter",
             "type": "dart",
+            "request": "launch",
             "program": "lib/main.dart",
             "args": [
-                "--dart-define-from-file",
-                "env.json"
+                "--dart-define=SUPABASE_URL=https://hlmbxyioclwgspgsmxvv.supabase.co",
+                "--dart-define=SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhsbWJ4eWlvY2x3Z3NwZ3NteHZ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQxMDg3OTEsImV4cCI6MjA2OTY4NDc5MX0.K567kfP7NjQVc0wn-vaAKRbY-TToDD0L1M7qlCGY5vY"
             ]
         }
     ]

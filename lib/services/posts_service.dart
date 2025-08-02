@@ -4,6 +4,42 @@ import '../services/supabase_service.dart';
 import '../services/auth_service.dart';
 
 class PostsService {
+  // Buscar posts por texto en título o contenido
+  Future<List<Post>> searchPosts(String query, {int limit = 50}) async {
+    try {
+      final userId = AuthService.instance.currentUser?.id;
+      final response = await _client
+          .from('posts')
+          .select('*, user_profiles!author_id(full_name)')
+          .or('title.ilike.%$query%,content.ilike.%$query%')
+          .eq('status', 'active')
+          .order('created_at', ascending: false)
+          .limit(limit);
+
+      Set<String> likedPostIds = {};
+      if (userId != null) {
+        final likesResponse = await _client
+            .from('post_likes')
+            .select('post_id')
+            .eq('user_id', userId);
+        likedPostIds = (likesResponse as List)
+            .map((like) => like['post_id'] as String)
+            .toSet();
+      }
+
+      return (response as List).map<Post>((json) {
+        final post = Post.fromJson(json);
+        final authorName = json['user_profiles']?['full_name'] as String?;
+        return post.copyWith(
+          authorName: authorName,
+          isLikedByCurrentUser: likedPostIds.contains(post.id),
+        );
+      }).toList();
+    } catch (error) {
+      throw Exception('Failed to search posts: $error');
+    }
+  }
+
   static PostsService? _instance;
   static PostsService get instance => _instance ??= PostsService._();
 
@@ -14,97 +50,107 @@ class PostsService {
   // Get all active posts with author information
   Future<List<Post>> getAllPosts({int limit = 50, int offset = 0}) async {
     try {
+      final userId = AuthService.instance.currentUser?.id;
       final response = await _client
           .from('posts')
-          .select('''
-            *,
-            user_profiles!author_id(full_name)
-          ''')
+          .select('*, user_profiles!author_id(full_name)')
           .eq('status', 'active')
           .order('created_at', ascending: false)
           .range(offset, offset + limit - 1);
 
-      return response.map<Post>((json) {
+      Set<String> likedPostIds = {};
+      if (userId != null) {
+        final likesResponse = await _client
+            .from('post_likes')
+            .select('post_id')
+            .eq('user_id', userId);
+        likedPostIds = (likesResponse as List)
+            .map((like) => like['post_id'] as String)
+            .toSet();
+      }
+
+      return (response as List).map<Post>((json) {
         final post = Post.fromJson(json);
         final authorName = json['user_profiles']?['full_name'] as String?;
-        return post.copyWith(authorName: authorName);
+        return post.copyWith(
+          authorName: authorName,
+          isLikedByCurrentUser: likedPostIds.contains(post.id),
+        );
       }).toList();
     } catch (error) {
       throw Exception('Failed to fetch posts: $error');
     }
   }
 
-  // Get featured posts
   Future<List<Post>> getFeaturedPosts({int limit = 10}) async {
     try {
+      final userId = AuthService.instance.currentUser?.id;
       final response = await _client
           .from('posts')
-          .select('''
-            *,
-            user_profiles!author_id(full_name)
-          ''')
+          .select('*, user_profiles!author_id(full_name)')
           .eq('status', 'active')
           .eq('is_featured', true)
           .order('created_at', ascending: false)
           .limit(limit);
 
-      return response.map<Post>((json) {
+      Set<String> likedPostIds = {};
+      if (userId != null) {
+        final likesResponse = await _client
+            .from('post_likes')
+            .select('post_id')
+            .eq('user_id', userId);
+        likedPostIds = (likesResponse as List)
+            .map((like) => like['post_id'] as String)
+            .toSet();
+      }
+
+      return (response as List).map<Post>((json) {
         final post = Post.fromJson(json);
         final authorName = json['user_profiles']?['full_name'] as String?;
-        return post.copyWith(authorName: authorName);
+        return post.copyWith(
+          authorName: authorName,
+          isLikedByCurrentUser: likedPostIds.contains(post.id),
+        );
       }).toList();
     } catch (error) {
       throw Exception('Failed to fetch featured posts: $error');
     }
   }
 
-  // Get posts by category
   Future<List<Post>> getPostsByCategory(String categoryId,
       {int limit = 50}) async {
     try {
+      final userId = AuthService.instance.currentUser?.id;
       final response = await _client
           .from('posts')
-          .select('''
-            *,
-            user_profiles!author_id(full_name),
-            post_category_assignments!inner(category_id)
-          ''')
+          .select(
+              '*, user_profiles!author_id(full_name), post_category_assignments!inner(category_id)')
           .eq('status', 'active')
           .eq('post_category_assignments.category_id', categoryId)
           .order('created_at', ascending: false)
           .limit(limit);
 
-      return response.map<Post>((json) {
+      Set<String> likedPostIds = {};
+      if (userId != null) {
+        final likesResponse = await _client
+            .from('post_likes')
+            .select('post_id')
+            .eq('user_id', userId);
+        likedPostIds = (likesResponse as List)
+            .map((like) => like['post_id'] as String)
+            .toSet();
+      }
+
+      return (response as List).map<Post>((json) {
         final post = Post.fromJson(json);
         final authorName = json['user_profiles']?['full_name'] as String?;
-        return post.copyWith(authorName: authorName);
+        return post.copyWith(
+          authorName: authorName,
+          isLikedByCurrentUser: likedPostIds.contains(post.id),
+        );
       }).toList();
     } catch (error) {
       throw Exception('Failed to fetch posts by category: $error');
-    }
-  }
-
-  // Search posts
-  Future<List<Post>> searchPosts(String query, {int limit = 50}) async {
-    try {
-      final response = await _client
-          .from('posts')
-          .select('''
-            *,
-            user_profiles!author_id(full_name)
-          ''')
-          .eq('status', 'active')
-          .or('title.ilike.%$query%,content.ilike.%$query%')
-          .order('created_at', ascending: false)
-          .limit(limit);
-
-      return response.map<Post>((json) {
-        final post = Post.fromJson(json);
-        final authorName = json['user_profiles']?['full_name'] as String?;
-        return post.copyWith(authorName: authorName);
-      }).toList();
-    } catch (error) {
-      throw Exception('Failed to search posts: $error');
     }
   }
 

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
+import '../../services/supabase_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -53,29 +54,31 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _initializeApp() async {
     try {
-      // Simulate checking authentication status
+      setState(() {
+        _statusMessage = 'Inicializando servicios...';
+      });
+      // Inicializar Supabase
+      await SupabaseService.initialize();
+
       setState(() {
         _statusMessage = 'Verificando autenticación...';
       });
-      await Future.delayed(const Duration(milliseconds: 800));
+      await Future.delayed(const Duration(milliseconds: 500));
 
-      // Simulate loading user preferences
       setState(() {
         _statusMessage = 'Cargando preferencias...';
       });
-      await Future.delayed(const Duration(milliseconds: 600));
+      await Future.delayed(const Duration(milliseconds: 400));
 
-      // Simulate fetching university configuration
       setState(() {
         _statusMessage = 'Configurando universidad...';
       });
-      await Future.delayed(const Duration(milliseconds: 700));
+      await Future.delayed(const Duration(milliseconds: 400));
 
-      // Simulate preparing cached post data
       setState(() {
         _statusMessage = 'Preparando contenido...';
       });
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 300));
 
       setState(() {
         _isInitializing = false;
@@ -85,10 +88,9 @@ class _SplashScreenState extends State<SplashScreen>
       // Wait for animation to complete
       await Future.delayed(const Duration(milliseconds: 300));
 
-      // Navigate based on authentication status
+      // Navegar según autenticación
       await _navigateToNextScreen();
     } catch (e) {
-      // Handle initialization errors
       setState(() {
         _isInitializing = false;
         _statusMessage = 'Error de conexión';
@@ -215,8 +217,8 @@ class _SplashScreenState extends State<SplashScreen>
             end: Alignment.bottomRight,
             colors: [
               AppTheme.lightTheme.colorScheme.primary,
-              AppTheme.lightTheme.colorScheme.primary.withValues(alpha: 0.8),
-              AppTheme.lightTheme.colorScheme.tertiary.withValues(alpha: 0.6),
+              AppTheme.lightTheme.colorScheme.primary.withOpacity(0.8),
+              AppTheme.lightTheme.colorScheme.tertiary.withOpacity(0.6),
             ],
             stops: const [0.0, 0.6, 1.0],
           ),
@@ -244,7 +246,7 @@ class _SplashScreenState extends State<SplashScreen>
                           borderRadius: BorderRadius.circular(20.0),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
+                              color: Colors.black.withOpacity(0.2),
                               blurRadius: 20.0,
                               offset: const Offset(0, 10),
                             ),
@@ -297,7 +299,7 @@ class _SplashScreenState extends State<SplashScreen>
                     Text(
                       'Tu comunidad universitaria conectada',
                       style: AppTheme.lightTheme.textTheme.bodyLarge?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.9),
+                        color: Colors.white.withOpacity(0.9),
                         fontSize: 14.sp,
                         letterSpacing: 0.5,
                       ),
@@ -325,7 +327,7 @@ class _SplashScreenState extends State<SplashScreen>
                                 child: CircularProgressIndicator(
                                   strokeWidth: 3.0,
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white.withValues(alpha: 0.9),
+                                    Colors.white.withOpacity(0.9),
                                   ),
                                 ),
                               )
@@ -344,7 +346,7 @@ class _SplashScreenState extends State<SplashScreen>
                             _statusMessage,
                             style: AppTheme.lightTheme.textTheme.bodyMedium
                                 ?.copyWith(
-                              color: Colors.white.withValues(alpha: 0.8),
+                              color: Colors.white.withOpacity(0.8),
                               fontSize: 12.sp,
                               letterSpacing: 0.3,
                             ),
@@ -371,7 +373,7 @@ class _SplashScreenState extends State<SplashScreen>
                     children: [
                       CustomIconWidget(
                         iconName: 'verified',
-                        color: Colors.white.withValues(alpha: 0.7),
+                        color: Colors.white.withOpacity(0.7),
                         size: 4.w,
                       ),
                       SizedBox(width: 2.w),
@@ -380,7 +382,7 @@ class _SplashScreenState extends State<SplashScreen>
                           'Plataforma oficial universitaria',
                           style:
                               AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.7),
+                            color: Colors.white.withOpacity(0.7),
                             fontSize: 10.sp,
                             letterSpacing: 0.2,
                           ),
