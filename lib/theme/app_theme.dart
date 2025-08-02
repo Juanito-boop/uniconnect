@@ -111,7 +111,7 @@ class AppTheme {
     ),
 
     // Card theme with restrained shadow values
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: surfaceLight,
       elevation: 2.0, // Material elevation responding to content importance
       shadowColor: shadowLight,
@@ -292,7 +292,7 @@ class AppTheme {
     ),
 
     // Tab bar theme for content organization
-    tabBarTheme: TabBarTheme(
+    tabBarTheme: TabBarThemeData(
       labelColor: primaryLight,
       unselectedLabelColor: textSecondaryLight,
       indicatorColor: primaryLight,
@@ -383,7 +383,7 @@ class AppTheme {
       iconTheme: IconThemeData(color: textPrimaryDark),
       actionsIconTheme: IconThemeData(color: textPrimaryDark),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: surfaceDark,
       elevation: 2.0,
       shadowColor: shadowDark,
@@ -544,7 +544,7 @@ class AppTheme {
       overlayColor: primaryDark.withAlpha(51),
       inactiveTrackColor: textSecondaryDark.withAlpha(77),
     ),
-    tabBarTheme: TabBarTheme(
+    tabBarTheme: TabBarThemeData(
       labelColor: primaryDark,
       unselectedLabelColor: textSecondaryDark,
       indicatorColor: primaryDark,

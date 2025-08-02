@@ -13,12 +13,6 @@ import './widgets/feed_tab_bar_widget.dart';
 import './widgets/post_card_widget.dart';
 import './widgets/profile_tab_widget.dart';
 import './widgets/search_tab_widget.dart';
-import 'widgets/empty_feed_widget.dart';
-import 'widgets/feed_header_widget.dart';
-import 'widgets/feed_tab_bar_widget.dart';
-import 'widgets/post_card_widget.dart';
-import 'widgets/profile_tab_widget.dart';
-import 'widgets/search_tab_widget.dart';
 
 class MainFeedScreen extends StatefulWidget {
   const MainFeedScreen({Key? key}) : super(key: key);
