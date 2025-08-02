@@ -277,9 +277,9 @@ class _MainFeedScreenState extends State<MainFeedScreen>
           FeedTabBarWidget(
             tabController: _tabController,
             tabs: const [
-              Tab(text: 'Feed'),
-              Tab(text: 'Search'),
-              Tab(text: 'Profile'),
+              'Feed',
+              'Search',
+              'Profile',
             ],
           ),
 
