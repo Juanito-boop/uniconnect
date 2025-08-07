@@ -17,8 +17,8 @@ CREATE TABLE public.user_profiles (
     department TEXT,
     student_id TEXT,
     profile_image_url TEXT,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT timezone('America/Bogota', CURRENT_TIMESTAMP),
+    updated_at TIMESTAMPTZ DEFAULT timezone('America/Bogota', CURRENT_TIMESTAMP)
 );
 
 CREATE TABLE public.posts (
@@ -31,8 +31,8 @@ CREATE TABLE public.posts (
     is_featured BOOLEAN DEFAULT false,
     view_count INTEGER DEFAULT 0,
     like_count INTEGER DEFAULT 0,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT timezone('America/Bogota', CURRENT_TIMESTAMP),
+    updated_at TIMESTAMPTZ DEFAULT timezone('America/Bogota', CURRENT_TIMESTAMP)
 );
 
 CREATE TABLE public.post_categories (
@@ -41,14 +41,14 @@ CREATE TABLE public.post_categories (
     description TEXT,
     color_code TEXT DEFAULT '#3B82F6',
     is_system_category BOOLEAN DEFAULT false,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT timezone('America/Bogota', CURRENT_TIMESTAMP)
 );
 
 CREATE TABLE public.post_likes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     post_id UUID REFERENCES public.posts(id) ON DELETE CASCADE,
     user_id UUID REFERENCES public.user_profiles(id) ON DELETE CASCADE,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ DEFAULT timezone('America/Bogota', CURRENT_TIMESTAMP),
     UNIQUE(post_id, user_id)
 );
 
@@ -57,7 +57,7 @@ CREATE TABLE public.post_category_assignments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     post_id UUID REFERENCES public.posts(id) ON DELETE CASCADE,
     category_id UUID REFERENCES public.post_categories(id) ON DELETE CASCADE,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ DEFAULT timezone('America/Bogota', CURRENT_TIMESTAMP),
     UNIQUE(post_id, category_id)
 );
 
@@ -201,83 +201,139 @@ CREATE TRIGGER update_like_count_trigger
   AFTER INSERT OR DELETE ON public.post_likes
   FOR EACH ROW EXECUTE FUNCTION public.update_post_like_count();
 
--- 8. Mock Data
-DO $$
-DECLARE
-    admin_uuid UUID := gen_random_uuid();
-    student1_uuid UUID := gen_random_uuid();
-    student2_uuid UUID := gen_random_uuid();
-    general_category_id UUID := gen_random_uuid();
-    events_category_id UUID := gen_random_uuid();
-    post1_id UUID := gen_random_uuid();
-    post2_id UUID := gen_random_uuid();
-    post3_id UUID := gen_random_uuid();
-BEGIN
-    -- Create auth users with required fields
-    INSERT INTO auth.users (
-        id, instance_id, aud, role, email, encrypted_password, email_confirmed_at,
-        created_at, updated_at, raw_user_meta_data, raw_app_meta_data,
-        is_sso_user, is_anonymous, confirmation_token, confirmation_sent_at,
-        recovery_token, recovery_sent_at, email_change_token_new, email_change,
-        email_change_sent_at, email_change_token_current, email_change_confirm_status,
-        reauthentication_token, reauthentication_sent_at, phone, phone_change,
-        phone_change_token, phone_change_sent_at
-    ) VALUES
-        (admin_uuid, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-         'admin@university.edu', crypt('admin123', gen_salt('bf', 10)), now(), now(), now(),
-         '{"full_name": "Dr. Sarah Johnson", "role": "admin"}'::jsonb, '{"provider": "email", "providers": ["email"]}'::jsonb,
-         false, false, '', null, '', null, '', '', null, '', 0, '', null, null, '', '', null),
-        (student1_uuid, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-         'john.doe@student.edu', crypt('student123', gen_salt('bf', 10)), now(), now(), now(),
-         '{"full_name": "John Doe", "role": "student"}'::jsonb, '{"provider": "email", "providers": ["email"]}'::jsonb,
-         false, false, '', null, '', null, '', '', null, '', 0, '', null, null, '', '', null),
-        (student2_uuid, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-         'jane.smith@student.edu', crypt('student123', gen_salt('bf', 10)), now(), now(), now(),
-         '{"full_name": "Jane Smith", "role": "student"}'::jsonb, '{"provider": "email", "providers": ["email"]}'::jsonb,
-         false, false, '', null, '', null, '', '', null, '', 0, '', null, null, '', '', null);
-
-    -- Create categories
-    INSERT INTO public.post_categories (id, name, description, color_code, is_system_category) VALUES
-        (general_category_id, 'General', 'General university announcements and news', '#3B82F6', true),
-        (events_category_id, 'Events', 'University events and activities', '#10B981', true);
-
-    -- Create posts
-    INSERT INTO public.posts (id, author_id, title, content, status, is_featured) VALUES
-        (post1_id, admin_uuid, 'Welcome to the New Academic Year!', 
-         'We are excited to welcome all new and returning students to the 2025 academic year. This semester brings new opportunities, exciting courses, and amazing events. Stay tuned for more updates throughout the semester.', 
-         'active'::public.post_status, true),
-        (post2_id, admin_uuid, 'Library Hours Extended for Finals Week', 
-         'Starting next week, the main library will extend its hours to support students during finals. The library will be open 24/7 from Monday through Friday. Additional study spaces have been set up in the student center.', 
-         'active'::public.post_status, false),
-        (post3_id, admin_uuid, 'Spring Career Fair - March 15th', 
-         'Join us for the annual Spring Career Fair on March 15th from 10 AM to 4 PM in the main gymnasium. Over 50 companies will be present with internship and full-time opportunities. Professional attire is encouraged.', 
-         'active'::public.post_status, true);
-
-    -- Create category assignments
-    INSERT INTO public.post_category_assignments (post_id, category_id) VALUES
-        (post1_id, general_category_id),
-        (post2_id, general_category_id),
-        (post3_id, events_category_id);
-
-    -- Create some likes
-    INSERT INTO public.post_likes (post_id, user_id) VALUES
-        (post1_id, student1_uuid),
-        (post1_id, student2_uuid),
-        (post2_id, student1_uuid),
-        (post3_id, student2_uuid);
-
-EXCEPTION
-    WHEN foreign_key_violation THEN
-        RAISE NOTICE 'Foreign key error: %', SQLERRM;
-    WHEN unique_violation THEN
-        RAISE NOTICE 'Unique constraint error: %', SQLERRM;
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Unexpected error: %', SQLERRM;
-END $$;
-
 -- Select statement to verify data
 SELECT 'University social platform created successfully, sample records:' as message;
 SELECT p.title, p.content, up.full_name as author, p.created_at 
 FROM public.posts p 
 JOIN public.user_profiles up ON p.author_id = up.id 
 LIMIT 3;
+
+CREATE TABLE IF NOT EXISTS events (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  content TEXT NOT NULL,
+  image_url VARCHAR(500),
+  author_id UUID REFERENCES public.user_profiles(id) ON DELETE CASCADE,
+  event_date TIMESTAMP WITH TIME ZONE NOT NULL,
+  location VARCHAR(255) NOT NULL,
+  registration_url VARCHAR(500),
+  max_attendees INTEGER DEFAULT 0,
+  event_type VARCHAR(255) NOT NULL DEFAULT 'general',
+  requires_registration BOOLEAN DEFAULT false,
+  speakers TEXT[],
+  agenda_url VARCHAR(500),
+  is_online BOOLEAN DEFAULT false,
+  meeting_url VARCHAR(500),
+  is_featured BOOLEAN DEFAULT false,
+  status VARCHAR(20) DEFAULT 'active',
+  view_count INTEGER DEFAULT 0,
+  like_count INTEGER DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_events_event_date ON events(event_date);
+CREATE INDEX IF NOT EXISTS idx_events_status ON events(status);
+CREATE INDEX IF NOT EXISTS idx_events_author_id ON events(author_id);
+CREATE INDEX IF NOT EXISTS idx_events_event_type ON events(event_type);
+
+CREATE TABLE IF NOT EXISTS event_categories (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name VARCHAR(100) NOT NULL UNIQUE,
+  description TEXT,
+  color_code VARCHAR(7) DEFAULT '#3B82F6',
+  icon_name VARCHAR(50),
+  is_system_category BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Tabla puente para categorías de eventos
+CREATE TABLE IF NOT EXISTS event_category_assignments (
+  event_id UUID REFERENCES events(id) ON DELETE CASCADE,
+  category_id UUID REFERENCES event_categories(id) ON DELETE CASCADE,
+  PRIMARY KEY (event_id, category_id)
+);
+
+CREATE TABLE IF NOT EXISTS event_registrations (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  event_id UUID REFERENCES events(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  registered_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  attended BOOLEAN DEFAULT false,
+  checked_in_at TIMESTAMP WITH TIME ZONE,
+  UNIQUE(event_id, user_id)
+);
+
+CREATE TYPE event_type AS ENUM (
+  'conference',
+  'fair', 
+  'workshop',
+  'seminar',
+  'networking',
+  'cultural',
+  'general'
+);
+
+-- 8. RLS para Eventos
+ALTER TABLE events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE event_categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE event_category_assignments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE event_registrations ENABLE ROW LEVEL SECURITY;
+
+-- Políticas para events (Pattern 4: Public read, private write)
+CREATE POLICY "public_can_read_events"
+ON events
+FOR SELECT
+TO public
+USING (status = 'active');
+
+CREATE POLICY "admins_manage_events"
+ON events
+FOR ALL
+TO authenticated
+USING (public.is_admin_from_auth())
+WITH CHECK (public.is_admin_from_auth());
+
+-- Políticas para event_categories (Pattern 4: Public read, admin write)
+CREATE POLICY "public_can_read_event_categories"
+ON event_categories
+FOR SELECT
+TO public
+USING (true);
+
+CREATE POLICY "admins_manage_event_categories"
+ON event_categories
+FOR ALL
+TO authenticated
+USING (public.is_admin_from_auth())
+WITH CHECK (public.is_admin_from_auth());
+
+-- Políticas para event_category_assignments (Pattern 4: Public read, admin write)
+CREATE POLICY "public_can_read_event_category_assignments"
+ON event_category_assignments
+FOR SELECT
+TO public
+USING (true);
+
+CREATE POLICY "admins_manage_event_category_assignments"
+ON event_category_assignments
+FOR ALL
+TO authenticated
+USING (public.is_admin_from_auth())
+WITH CHECK (public.is_admin_from_auth());
+
+-- Políticas para event_registrations (Pattern 2: Simple user ownership)
+CREATE POLICY "users_manage_own_event_registrations"
+ON event_registrations
+FOR ALL
+TO authenticated
+USING (user_id = auth.uid())
+WITH CHECK (user_id = auth.uid());
+
+-- Política adicional para que los admins puedan ver todos los registros
+CREATE POLICY "admins_can_read_all_event_registrations"
+ON event_registrations
+FOR SELECT
+TO authenticated
+USING (public.is_admin_from_auth());

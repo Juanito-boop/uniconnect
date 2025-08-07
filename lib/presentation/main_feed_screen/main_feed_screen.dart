@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sizer/sizer.dart';
+import 'package:uniconnect/presentation/events/events_tab_widget.dart';
 
 import '../../models/post.dart';
 import '../../models/post_category.dart';
@@ -35,9 +36,28 @@ class _MainFeedScreenState extends State<MainFeedScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
+    _restoreSessionAndInit();
+    _loadEvents();
+  }
+
+  Future<void> _restoreSessionAndInit() async {
+    await AuthService.instance.restoreSession();
     _checkAuthState();
     _loadData();
+  }
+
+  // Nuevo método para cargar eventos
+  Future<void> _loadEvents() async {
+    try {
+      // Se cargará en el EventsTab directamente
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _error = error.toString();
+        });
+      }
+    }
   }
 
   @override
@@ -207,44 +227,48 @@ class _MainFeedScreenState extends State<MainFeedScreen>
         // Featured posts section (only show when "All Posts" is selected)
         if (_selectedCategoryId == null && _featuredPosts.isNotEmpty)
           SliverToBoxAdapter(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 4.w, vertical: 0.4.h),
-                    child: Text('Featured Posts',
-                        style: GoogleFonts.inter(
-                            fontSize: 18.sp,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87))),
+                  padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 0.4.h),
+                  child: Text('Featured Posts',
+                      style: GoogleFonts.inter(
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87)),
+                ),
                 ..._featuredPosts
                     .map((post) => PostCardWidget(
-                        post: post,
-                        onLikeChanged: (isLiked) =>
-                            _onPostLikeChanged(post.id, isLiked)))
+                          post: post,
+                          onLikeChanged: (isLiked) => _onPostLikeChanged(post.id, isLiked),
+                        ))
                     .toList(),
                 Divider(height: 3.h, thickness: 1.5, color: Colors.grey[200]),
-              ])),
+              ],
+            ),
+          ),
 
         // All posts section
         SliverToBoxAdapter(
-            child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 0.4.h),
-                child: Text(_selectedCategoryId == null ? 'All Posts' : 'Posts',
-                    style: GoogleFonts.inter(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87)))),
-
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 0.4.h),
+            child: Text(_selectedCategoryId == null ? 'All Posts' : 'Posts',
+                style: GoogleFonts.inter(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87)),
+          ),
+        ),
         // Posts list
         SliverList(
-            delegate: SliverChildBuilderDelegate((context, index) {
-          final post = _posts[index];
-          return PostCardWidget(
-              post: post,
-              onLikeChanged: (isLiked) => _onPostLikeChanged(post.id, isLiked));
-        }, childCount: _posts.length)),
+          delegate: SliverChildBuilderDelegate((context, index) {
+            final post = _posts[index];
+            return PostCardWidget(
+                post: post,
+                onLikeChanged: (isLiked) => _onPostLikeChanged(post.id, isLiked));
+          }, childCount: _posts.length),
+        ),
 
         // Bottom padding
         SliverToBoxAdapter(child: SizedBox(height: 10.h)),
@@ -256,10 +280,11 @@ class _MainFeedScreenState extends State<MainFeedScreen>
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 0.4.h),
+        padding: EdgeInsets.symmetric(
+            horizontal: 16, vertical: 4), // padding fijo, más delgado
         decoration: BoxDecoration(
           color: isSelected ? Theme.of(context).primaryColor : Colors.grey[100],
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(12), // menos redondeado
           border: Border.all(
               color: isSelected
                   ? Theme.of(context).primaryColor
@@ -269,7 +294,7 @@ class _MainFeedScreenState extends State<MainFeedScreen>
           child: Text(
             label,
             style: GoogleFonts.inter(
-              fontSize: 11.sp,
+              fontSize: 13, // tamaño fijo, más pequeño
               fontWeight: FontWeight.w500,
               color: isSelected ? Colors.white : Colors.grey[700],
             ),
@@ -296,6 +321,7 @@ class _MainFeedScreenState extends State<MainFeedScreen>
             tabController: _tabController,
             tabs: const [
               'Feed',
+              'Events',
               'Search',
               'Profile',
             ],
@@ -307,6 +333,7 @@ class _MainFeedScreenState extends State<MainFeedScreen>
             // Feed tab
             _buildFeedTab(),
 
+            _buildEventsTab(),
             // Search tab
             SearchTabWidget(onPostLikeChanged: _onPostLikeChanged),
 
@@ -321,21 +348,40 @@ class _MainFeedScreenState extends State<MainFeedScreen>
 
         // Floating action button for creating posts (admin only)
         floatingActionButton: _isAuthenticated
-            ? FutureBuilder<bool>(
-                future: AuthService.instance.isCurrentUserAdmin(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData && snapshot.data!) {
-                    return FloatingActionButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, AppRoutes.createPost)
-                              .then((_) =>
-                                  _loadData()); // Refresh after creating post
-                        },
-                        backgroundColor: Theme.of(context).primaryColor,
-                        child: const Icon(Icons.add, color: Colors.white));
-                  }
-                  return const SizedBox.shrink();
-                })
-            : null);
+          ? FutureBuilder<bool>(
+              future: AuthService.instance.isCurrentUserAdmin(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData && snapshot.data!) {
+                  return FloatingActionButton(
+                    onPressed: () {
+                      // Detectar en qué tab estamos
+                      if (_tabController.index == 1) {
+                        // Estamos en Events tab
+                        Navigator.pushNamed(context, AppRoutes.createEvent);
+                      } else {
+                        // Estamos en Feed tab
+                        Navigator.pushNamed(context, AppRoutes.createPost);
+                      }
+                    },
+                    backgroundColor: Theme.of(context).primaryColor,
+                    child: const Icon(Icons.add, color: Colors.white),
+                  );
+                }
+                return const SizedBox.shrink();
+              })
+          : null,
+    );
   }
+
+  Widget _buildEventsTab() {
+      return EventsTabWidget(
+        onEventTap: (event) {
+          Navigator.pushNamed(
+            context,
+            AppRoutes.eventDetail,
+            arguments: event,
+          );
+        },
+      );
+    }
 }

@@ -55,6 +55,10 @@ class FeedTabBarWidget extends StatelessWidget {
         iconData = Icons.home;
         label = 'Feed';
         break;
+      case 'events':
+        iconData = Icons.event;
+        label = 'Eventos';
+        break;
       case 'search':
         iconData = Icons.search;
         label = 'Buscar';
@@ -73,8 +77,8 @@ class FeedTabBarWidget extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CustomIconWidget(
-            iconName: iconData.toString().split('.').last,
+          Icon(
+            iconData,
             size: 24,
             color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
           ),

@@ -1,5 +1,7 @@
 import '../models/user_profile.dart';
 import '../services/supabase_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class AuthService {
   static AuthService? _instance;
@@ -17,6 +19,21 @@ class AuthService {
 
   // Check if user is authenticated
   bool get isAuthenticated => currentUser != null;
+
+  // Persist session token key
+  static const String _sessionKey = 'user_session_token';
+
+  // Restore session from SharedPreferences
+  Future<void> restoreSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final sessionString = prefs.getString(_sessionKey);
+    if (sessionString != null && currentSession == null) {
+      try {
+        final sessionMap = jsonDecode(sessionString);
+        await _client.auth.recoverSession(sessionMap);
+      } catch (_) {}
+    }
+  }
 
   // Sign up with email and password
   Future<dynamic> signUp({
@@ -54,6 +71,12 @@ class AuthService {
         email: email,
         password: password,
       );
+      // Guardar sesión serializada si existe
+      final session = response.session;
+      if (session != null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_sessionKey, jsonEncode(session.toJson()));
+      }
       return response;
     } catch (error) {
       throw Exception('Sign-in failed: $error');
@@ -64,6 +87,8 @@ class AuthService {
   Future<void> signOut() async {
     try {
       await _client.auth.signOut();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_sessionKey);
     } catch (error) {
       throw Exception('Sign-out failed: $error');
     }
