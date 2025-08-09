@@ -14,6 +14,7 @@ import './widgets/feed_tab_bar_widget.dart';
 import './widgets/post_card_widget.dart';
 import './widgets/profile_tab_widget.dart';
 import './widgets/search_tab_widget.dart';
+import './widgets/feed_category_chips_widget.dart';
 
 class MainFeedScreen extends StatefulWidget {
   const MainFeedScreen({Key? key}) : super(key: key);
@@ -25,7 +26,8 @@ class MainFeedScreen extends StatefulWidget {
 class _MainFeedScreenState extends State<MainFeedScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  List<Post> _posts = [];
+  List<Post> _allPosts = [];
+  List<Post> _filteredPosts = [];
   List<Post> _featuredPosts = [];
   List<PostCategory> _categories = [];
   bool _isLoading = true;
@@ -95,11 +97,19 @@ class _MainFeedScreenState extends State<MainFeedScreen>
       ]);
 
       if (mounted) {
+        final allPosts = results[0] as List<Post>;
+        // Depuración: imprimir las categorías de cada post
+        for (final post in allPosts) {
+          print(
+              'Post: \\n  id: \\${post.id} \\n  title: \\${post.title} \\n  categories: \\${post.categories}');
+        }
         setState(() {
-          _posts = results[0] as List<Post>;
+          _allPosts = allPosts;
+          _filteredPosts = allPosts;
           _featuredPosts = results[1] as List<Post>;
           _categories = results[2] as List<PostCategory>;
           _isLoading = false;
+          _selectedCategoryId = null;
         });
       }
     } catch (error) {
@@ -112,43 +122,35 @@ class _MainFeedScreenState extends State<MainFeedScreen>
     }
   }
 
-  Future<void> _loadPostsByCategory(String? categoryId) async {
-    try {
-      setState(() {
-        _isLoading = true;
-        _selectedCategoryId = categoryId;
-      });
-
-      List<Post> posts;
+  void _onCategorySelected(String? categoryId) {
+    setState(() {
+      _selectedCategoryId = categoryId;
       if (categoryId == null) {
-        posts = await PostsService.instance.getAllPosts();
+        _filteredPosts = _allPosts;
       } else {
-        posts = await PostsService.instance.getPostsByCategory(categoryId);
+        _filteredPosts = _allPosts
+            .where((p) => (p.categories ?? []).contains(categoryId))
+            .toList();
       }
-
-      if (mounted) {
-        setState(() {
-          _posts = posts;
-          _isLoading = false;
-        });
-      }
-    } catch (error) {
-      if (mounted) {
-        setState(() {
-          _error = error.toString();
-          _isLoading = false;
-        });
-      }
-    }
+    });
   }
 
   void _onPostLikeChanged(String postId, bool isLiked) {
     setState(() {
-      // Actualiza solo el post afectado en la lista principal
-      final idx = _posts.indexWhere((p) => p.id == postId);
-      if (idx != -1) {
-        final post = _posts[idx];
-        _posts[idx] = post.copyWith(
+      // Actualiza en _allPosts
+      final idxAll = _allPosts.indexWhere((p) => p.id == postId);
+      if (idxAll != -1) {
+        final post = _allPosts[idxAll];
+        _allPosts[idxAll] = post.copyWith(
+          isLikedByCurrentUser: isLiked,
+          likeCount: (post.likeCount + (isLiked ? 1 : -1)).clamp(0, 1 << 30),
+        );
+      }
+      // Actualiza en _filteredPosts
+      final idxFiltered = _filteredPosts.indexWhere((p) => p.id == postId);
+      if (idxFiltered != -1) {
+        final post = _filteredPosts[idxFiltered];
+        _filteredPosts[idxFiltered] = post.copyWith(
           isLikedByCurrentUser: isLiked,
           likeCount: (post.likeCount + (isLiked ? 1 : -1)).clamp(0, 1 << 30),
         );
@@ -188,41 +190,24 @@ class _MainFeedScreenState extends State<MainFeedScreen>
         ElevatedButton(onPressed: _loadData, child: const Text('Try Again')),
       ]));
     }
-
-    if (_posts.isEmpty) {
+    if (_filteredPosts.isEmpty) {
       return const EmptyFeedWidget();
     }
 
     return RefreshIndicator(
-      onRefresh: () => _selectedCategoryId == null
-          ? _loadData()
-          : _loadPostsByCategory(_selectedCategoryId),
+      onRefresh: _loadData,
       child: CustomScrollView(slivers: [
         // Categories filter
         SliverToBoxAdapter(
-            child: Container(
-                height: 6.h,
-                margin: EdgeInsets.symmetric(vertical: 1.h),
-                child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    padding: EdgeInsets.symmetric(horizontal: 4.w),
-                    children: [
-                      // All posts chip
-                      _buildCategoryChip(
-                          'All Posts',
-                          _selectedCategoryId == null,
-                          () => _loadPostsByCategory(null)),
-                      SizedBox(width: 2.w),
-                      // Category chips
-                      ..._categories
-                          .map((category) => Padding(
-                              padding: EdgeInsets.only(right: 2.w),
-                              child: _buildCategoryChip(
-                                  category.name,
-                                  _selectedCategoryId == category.id,
-                                  () => _loadPostsByCategory(category.id))))
-                          .toList(),
-                    ]))),
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: FeedCategoryChipsWidget(
+              categories: _categories,
+              selectedCategoryId: _selectedCategoryId,
+              onCategorySelected: _onCategorySelected,
+            ),
+          ),
+        ),
 
         // Featured posts section (only show when "All Posts" is selected)
         if (_selectedCategoryId == null && _featuredPosts.isNotEmpty)
@@ -231,7 +216,7 @@ class _MainFeedScreenState extends State<MainFeedScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 0.4.h),
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   child: Text('Featured Posts',
                       style: GoogleFonts.inter(
                           fontSize: 18.sp,
@@ -241,10 +226,11 @@ class _MainFeedScreenState extends State<MainFeedScreen>
                 ..._featuredPosts
                     .map((post) => PostCardWidget(
                           post: post,
-                          onLikeChanged: (isLiked) => _onPostLikeChanged(post.id, isLiked),
+                          onLikeChanged: (isLiked) =>
+                              _onPostLikeChanged(post.id, isLiked),
                         ))
                     .toList(),
-                Divider(height: 3.h, thickness: 1.5, color: Colors.grey[200]),
+                Divider(height: 24, thickness: 1.5, color: Colors.grey[200]),
               ],
             ),
           ),
@@ -252,7 +238,7 @@ class _MainFeedScreenState extends State<MainFeedScreen>
         // All posts section
         SliverToBoxAdapter(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 0.4.h),
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Text(_selectedCategoryId == null ? 'All Posts' : 'Posts',
                 style: GoogleFonts.inter(
                     fontSize: 18.sp,
@@ -263,91 +249,65 @@ class _MainFeedScreenState extends State<MainFeedScreen>
         // Posts list
         SliverList(
           delegate: SliverChildBuilderDelegate((context, index) {
-            final post = _posts[index];
+            final post = _filteredPosts[index];
             return PostCardWidget(
                 post: post,
-                onLikeChanged: (isLiked) => _onPostLikeChanged(post.id, isLiked));
-          }, childCount: _posts.length),
+                onLikeChanged: (isLiked) =>
+                    _onPostLikeChanged(post.id, isLiked));
+          }, childCount: _filteredPosts.length),
         ),
 
         // Bottom padding
-        SliverToBoxAdapter(child: SizedBox(height: 10.h)),
+        SliverToBoxAdapter(child: SizedBox(height: 80)),
       ]),
     );
   }
 
-  Widget _buildCategoryChip(String label, bool isSelected, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(
-            horizontal: 16, vertical: 4), // padding fijo, más delgado
-        decoration: BoxDecoration(
-          color: isSelected ? Theme.of(context).primaryColor : Colors.grey[100],
-          borderRadius: BorderRadius.circular(12), // menos redondeado
-          border: Border.all(
-              color: isSelected
-                  ? Theme.of(context).primaryColor
-                  : Colors.grey[300]!),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 13, // tamaño fijo, más pequeño
-              fontWeight: FontWeight.w500,
-              color: isSelected ? Colors.white : Colors.grey[700],
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ),
-    );
-  }
+  // ...existing code...
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.grey[50],
-        body: SafeArea(
-            child: Column(children: [
-          // Header
-          FeedHeaderWidget(onNotificationTap: () {
-            Navigator.pushNamed(context, AppRoutes.notifications);
-          }),
+      backgroundColor: Colors.grey[50],
+      body: SafeArea(
+          child: Column(children: [
+        // Header
+        FeedHeaderWidget(onNotificationTap: () {
+          Navigator.pushNamed(context, AppRoutes.notifications);
+        }),
 
-          // Tab bar
-          FeedTabBarWidget(
-            tabController: _tabController,
-            tabs: const [
-              'Feed',
-              'Events',
-              'Search',
-              'Profile',
-            ],
-          ),
+        // Tab bar
+        FeedTabBarWidget(
+          tabController: _tabController,
+          tabs: const [
+            'Feed',
+            'Events',
+            'Search',
+            'Profile',
+          ],
+        ),
 
-          // Tab content
-          Expanded(
-              child: TabBarView(controller: _tabController, children: [
-            // Feed tab
-            _buildFeedTab(),
+        // Tab content
+        Expanded(
+            child: TabBarView(controller: _tabController, children: [
+          // Feed tab
+          _buildFeedTab(),
 
-            _buildEventsTab(),
-            // Search tab
-            SearchTabWidget(onPostLikeChanged: _onPostLikeChanged),
+          _buildEventsTab(),
+          // Search tab
+          SearchTabWidget(onPostLikeChanged: _onPostLikeChanged),
 
-            // Profile tab
-            ProfileTabWidget(
-                isAuthenticated: _isAuthenticated,
-                onAuthRequired: () {
-                  Navigator.pushNamed(context, AppRoutes.login);
-                }),
-          ])),
+          // Profile tab
+          ProfileTabWidget(
+              isAuthenticated: _isAuthenticated,
+              onAuthRequired: () {
+                Navigator.pushNamed(context, AppRoutes.login);
+              }),
         ])),
+      ])),
 
-        // Floating action button for creating posts (admin only)
-        floatingActionButton: _isAuthenticated
+      // Floating action button for creating posts (admin only)
+      floatingActionButton: _isAuthenticated
           ? FutureBuilder<bool>(
               future: AuthService.instance.isCurrentUserAdmin(),
               builder: (context, snapshot) {
@@ -374,14 +334,14 @@ class _MainFeedScreenState extends State<MainFeedScreen>
   }
 
   Widget _buildEventsTab() {
-      return EventsTabWidget(
-        onEventTap: (event) {
-          Navigator.pushNamed(
-            context,
-            AppRoutes.eventDetail,
-            arguments: event,
-          );
-        },
-      );
-    }
+    return EventsTabWidget(
+      onEventTap: (event) {
+        Navigator.pushNamed(
+          context,
+          AppRoutes.eventDetail,
+          arguments: event,
+        );
+      },
+    );
+  }
 }

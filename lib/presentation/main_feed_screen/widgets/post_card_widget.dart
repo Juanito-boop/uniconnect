@@ -7,6 +7,16 @@ import '../../../services/auth_service.dart';
 import '../../../widgets/custom_image_widget.dart';
 import '../../../widgets/app_snackbar.dart';
 
+String formatLikesCount(int count) {
+    if (count >= 1000000) {
+        return (count / 1000000).toStringAsFixed(count % 1000000 == 0 ? 0 : 1) + 'M';
+    } else if (count >= 1000) {
+        return (count / 1000).toStringAsFixed(count % 1000 == 0 ? 0 : 1) + 'k';
+    } else {
+        return count.toString();
+    }
+}
+
 class PostCardWidget extends StatefulWidget {
   final Post post;
   final VoidCallback? onTap;
@@ -211,7 +221,7 @@ class _PostCardWidgetState extends State<PostCardWidget> {
                                                       : Colors.grey,
                                                   size: 16.sp),
                                           SizedBox(width: 1.w),
-                                          Text(_likeCount.toString(),
+                                          Text(formatLikesCount(_likeCount),
                                               style: GoogleFonts.inter(
                                                   fontSize: 12.sp,
                                                   color: _isLiked

@@ -53,7 +53,8 @@ class PostsService {
       final userId = AuthService.instance.currentUser?.id;
       final response = await _client
           .from('posts')
-          .select('*, user_profiles!author_id(full_name)')
+          .select(
+              '*, user_profiles!author_id(full_name), post_category_assignments:post_category_assignments(category_id)')
           .eq('status', 'active')
           .order('created_at', ascending: false)
           .range(offset, offset + limit - 1);
@@ -70,11 +71,15 @@ class PostsService {
       }
 
       return (response as List).map<Post>((json) {
+        final categories = (json['post_category_assignments'] as List?)
+            ?.map((e) => e['category_id'] as String)
+            .toList();
         final post = Post.fromJson(json);
         final authorName = json['user_profiles']?['full_name'] as String?;
         return post.copyWith(
           authorName: authorName,
           isLikedByCurrentUser: likedPostIds.contains(post.id),
+          categories: categories,
         );
       }).toList();
     } catch (error) {
