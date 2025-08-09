@@ -3,11 +3,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:sizer/sizer.dart';
 import '../../models/event.dart';
+import '../../l10n/app_localizations.dart';
 
 class EventListWidget extends StatelessWidget {
   final List<Event> events;
   final Function(Event)? onEventTap;
-  
+
   const EventListWidget({
     Key? key,
     required this.events,
@@ -33,7 +34,7 @@ class EventListWidget extends StatelessWidget {
 class EventCardWidget extends StatelessWidget {
   final Event event;
   final Function(Event)? onTap;
-  
+
   const EventCardWidget({
     Key? key,
     required this.event,
@@ -42,6 +43,7 @@ class EventCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       margin: EdgeInsets.only(bottom: 2.h),
       decoration: BoxDecoration(
@@ -112,10 +114,11 @@ class EventCardWidget extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.star, size: 12.sp, color: Colors.amber[800]),
+                            Icon(Icons.star,
+                                size: 12.sp, color: Colors.amber[800]),
                             SizedBox(width: 1.w),
                             Text(
-                              'Featured',
+                              l10n.t('eventFeatured'),
                               style: GoogleFonts.inter(
                                 fontSize: 9.sp,
                                 fontWeight: FontWeight.w500,
@@ -145,10 +148,12 @@ class EventCardWidget extends StatelessWidget {
                 // Date and time
                 Row(
                   children: [
-                    Icon(Icons.access_time, size: 16.sp, color: Colors.grey[600]),
+                    Icon(Icons.access_time,
+                        size: 16.sp, color: Colors.grey[600]),
                     SizedBox(width: 1.w),
                     Text(
-                      DateFormat('MMM d, yyyy • hh:mm a').format(event.eventDate),
+                      DateFormat('MMM d, yyyy • hh:mm a')
+                          .format(event.eventDate),
                       style: GoogleFonts.inter(
                         fontSize: 12.sp,
                         color: Colors.grey[600],
@@ -162,7 +167,8 @@ class EventCardWidget extends StatelessWidget {
                 // Location
                 Row(
                   children: [
-                    Icon(Icons.location_on, size: 16.sp, color: Colors.grey[600]),
+                    Icon(Icons.location_on,
+                        size: 16.sp, color: Colors.grey[600]),
                     SizedBox(width: 1.w),
                     Expanded(
                       child: Text(
@@ -186,7 +192,7 @@ class EventCardWidget extends StatelessWidget {
                       SizedBox(width: 1.w),
                       Expanded(
                         child: Text(
-                          'Speakers: ${event.speakers.join(', ')}',
+                          '${l10n.t('speakersPrefix')} ${event.speakers.join(', ')}',
                           style: GoogleFonts.inter(
                             fontSize: 12.sp,
                             color: Colors.grey[600],
@@ -230,9 +236,10 @@ class EventCardWidget extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          event.hasSpots 
-                              ? '${event.registrationCount} registered'
-                              : 'Full',
+                          event.hasSpots
+                              ? l10n.t('registeredCount').replaceFirst(
+                                  '{count}', event.registrationCount.toString())
+                              : l10n.t('eventFull'),
                           style: GoogleFonts.inter(
                             fontSize: 10.sp,
                             color: Colors.white,
@@ -240,12 +247,12 @@ class EventCardWidget extends StatelessWidget {
                           ),
                         ),
                       ),
-                    
+
                     const Spacer(),
-                    
+
                     // Time until event
                     Text(
-                      event.timeUntilEvent,
+                      event.localizedTimeUntil(context),
                       style: GoogleFonts.inter(
                         fontSize: 11.sp,
                         color: Theme.of(context).primaryColor,

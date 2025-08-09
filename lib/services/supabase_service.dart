@@ -1,10 +1,13 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 
 class SupabaseService {
   static SupabaseService? _instance;
   static SupabaseService get instance => _instance ??= SupabaseService._();
 
   SupabaseService._();
+
+  static bool _initialized = false;
 
   static const String supabaseUrl =
       String.fromEnvironment('SUPABASE_URL', defaultValue: '');
@@ -13,6 +16,7 @@ class SupabaseService {
 
   // Initialize Supabase - call this in main()
   static Future<void> initialize() async {
+    if (_initialized) return; // Evitar inicialización doble
     if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
       throw Exception(
           'ERROR: Las variables de entorno SUPABASE_URL y SUPABASE_ANON_KEY no están definidas.\n\n'
@@ -21,10 +25,14 @@ class SupabaseService {
           'Reemplaza TU_URL y TU_ANON_KEY por los valores reales de tu proyecto Supabase.');
     }
 
+    // Logging básico
+    debugPrint('[SupabaseService] Inicializando con URL: $supabaseUrl');
     await Supabase.initialize(
       url: supabaseUrl,
       anonKey: supabaseAnonKey,
     );
+    _initialized = true;
+    debugPrint('[SupabaseService] Inicialización completada');
   }
 
   // Get Supabase client

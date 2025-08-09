@@ -4,6 +4,7 @@ import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
 import '../../services/supabase_service.dart';
+import '../../services/auth_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -61,9 +62,10 @@ class _SplashScreenState extends State<SplashScreen>
       await SupabaseService.initialize();
 
       setState(() {
-        _statusMessage = 'Verificando autenticación...';
+        _statusMessage = 'Restaurando sesión...';
       });
-      await Future.delayed(const Duration(milliseconds: 500));
+      await AuthService.instance.restoreSession();
+      await Future.delayed(const Duration(milliseconds: 200));
 
       setState(() {
         _statusMessage = 'Cargando preferencias...';
@@ -101,8 +103,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _navigateToNextScreen() async {
-    // Simulate authentication check
-    final bool isAuthenticated = await _checkAuthenticationStatus();
+    final bool isAuthenticated = AuthService.instance.isAuthenticated;
     final bool isFirstTime = await _checkFirstTimeUser();
 
     if (!mounted) return;
@@ -115,13 +116,6 @@ class _SplashScreenState extends State<SplashScreen>
     } else {
       Navigator.pushReplacementNamed(context, '/login-screen');
     }
-  }
-
-  Future<bool> _checkAuthenticationStatus() async {
-    // Simulate checking stored authentication token
-    await Future.delayed(const Duration(milliseconds: 200));
-    // Return false for demo - in real app, check stored credentials
-    return false;
   }
 
   Future<bool> _checkFirstTimeUser() async {

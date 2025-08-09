@@ -5,6 +5,7 @@ import '../../models/event.dart';
 import '../../services/auth_service.dart';
 import '../../services/events_service.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/app_localizations.dart';
 
 class CreateEventScreen extends StatefulWidget {
   const CreateEventScreen({Key? key}) : super(key: key);
@@ -34,7 +35,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   bool _requiresRegistration = false;
   bool _isLoading = false;
   bool _isLoadingCategories = true;
-  String _error = '';
+  // Removed unused _error field after localization refactor
 
   @override
   void initState() {
@@ -61,12 +62,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       final isAdmin = await AuthService.instance.isCurrentUserAdmin();
       if (!isAdmin) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Only administrators can create events'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          final l10n = AppLocalizations.of(context);
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(l10n.t('adminOnlyEvents')),
+            backgroundColor: Colors.red,
+          ));
           Navigator.pop(context);
         }
         return;
@@ -75,12 +75,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       await _loadCategories();
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $error'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Error: $error'),
+          backgroundColor: Colors.red,
+        ));
         Navigator.pop(context);
       }
     }
@@ -90,7 +88,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     try {
       setState(() {
         _isLoadingCategories = true;
-        _error = '';
       });
 
       final categories = await EventsService.instance.getEventCategories();
@@ -104,7 +101,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     } catch (error) {
       if (mounted) {
         setState(() {
-          _error = error.toString();
           _isLoadingCategories = false;
         });
       }
@@ -115,12 +111,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_selectedDate == null || _selectedTime == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select date and time'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      final l10n = AppLocalizations.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(l10n.t('pleaseSelectDateTime')),
+        backgroundColor: Colors.red,
+      ));
       return;
     }
 
@@ -170,23 +165,21 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Event created successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        final l10n = AppLocalizations.of(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(l10n.t('eventCreatedSuccess')),
+          backgroundColor: Colors.green,
+        ));
         Navigator.pop(context);
       }
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to create event: $error'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 4),
-          ),
-        );
+        final l10n = AppLocalizations.of(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('${l10n.t('eventCreateErrorPrefix')} $error'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
+        ));
       }
     } finally {
       if (mounted) {
@@ -239,7 +232,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Event Type',
+            AppLocalizations.of(context).t('eventTypeLabel'),
             style: GoogleFonts.inter(
               fontSize: 14.sp,
               fontWeight: FontWeight.w600,
@@ -315,7 +308,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Categories (Optional)',
+            AppLocalizations.of(context).t('categoriesOptional'),
             style: GoogleFonts.inter(
               fontSize: 14.sp,
               fontWeight: FontWeight.w600,
@@ -394,7 +387,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Create Event',
+          AppLocalizations.of(context).t('eventCreateAppBar'),
           style: GoogleFonts.inter(
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
@@ -416,7 +409,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     ),
                   )
                 : Text(
-                    'Create',
+                    AppLocalizations.of(context).t('eventCreateAction'),
                     style: GoogleFonts.inter(
                       fontSize: 14.sp,
                       fontWeight: FontWeight.w600,
@@ -452,8 +445,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 child: TextFormField(
                   controller: _titleController,
                   decoration: InputDecoration(
-                    labelText: 'Event Title',
-                    hintText: 'Enter an engaging title for your event',
+                    labelText:
+                        AppLocalizations.of(context).t('eventTitleLabel'),
+                    hintText: AppLocalizations.of(context).t('eventTitleHint'),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -461,10 +455,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Title is required';
+                      return AppLocalizations.of(context)
+                          .t('eventTitleRequired');
                     }
                     if (value.trim().length < 5) {
-                      return 'Title must be at least 5 characters';
+                      return AppLocalizations.of(context).t('eventTitleMin');
                     }
                     return null;
                   },
@@ -492,8 +487,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   controller: _contentController,
                   maxLines: 6,
                   decoration: InputDecoration(
-                    labelText: 'Event Description',
-                    hintText: 'Describe your event, agenda, speakers, etc.',
+                    labelText:
+                        AppLocalizations.of(context).t('eventDescriptionLabel'),
+                    hintText:
+                        AppLocalizations.of(context).t('eventDescriptionHint'),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -501,10 +498,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Description is required';
+                      return AppLocalizations.of(context)
+                          .t('eventDescriptionRequired');
                     }
                     if (value.trim().length < 20) {
-                      return 'Description must be at least 20 characters';
+                      return AppLocalizations.of(context)
+                          .t('eventDescriptionMin');
                     }
                     return null;
                   },
@@ -537,7 +536,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   leading: const Icon(Icons.calendar_today),
                   title: Text(
                     _selectedDate == null || _selectedTime == null
-                        ? 'Select Date & Time'
+                        ? AppLocalizations.of(context).t('selectDateTime')
                         : '${DateFormat('MMM d, yyyy').format(_selectedDate!)} at ${_selectedTime!.format(context)}',
                   ),
                   trailing: const Icon(Icons.edit_calendar),
@@ -567,8 +566,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     TextFormField(
                       controller: _locationController,
                       decoration: InputDecoration(
-                        labelText: 'Location',
-                        hintText: 'e.g., Main Auditorium, Room 205',
+                        labelText:
+                            AppLocalizations.of(context).t('locationLabel'),
+                        hintText:
+                            AppLocalizations.of(context).t('locationHint'),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -583,7 +584,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     ),
                     SizedBox(height: 2.h),
                     SwitchListTile(
-                      title: const Text('Online Event'),
+                      title:
+                          Text(AppLocalizations.of(context).t('onlineEvent')),
                       value: _isOnline,
                       onChanged: (value) {
                         setState(() {
@@ -595,8 +597,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                       TextFormField(
                         controller: _meetingUrlController,
                         decoration: InputDecoration(
-                          labelText: 'Meeting URL',
-                          hintText: 'https://zoom.us/j/123456789',
+                          labelText:
+                              AppLocalizations.of(context).t('meetingUrlLabel'),
+                          hintText:
+                              AppLocalizations.of(context).t('meetingUrlHint'),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -605,7 +609,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                         validator: (value) {
                           if (_isOnline &&
                               (value == null || value.trim().isEmpty)) {
-                            return 'Meeting URL is required for online events';
+                            return AppLocalizations.of(context)
+                                .t('meetingUrlRequired');
                           }
                           return null;
                         },
@@ -640,7 +645,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Additional Details',
+                      AppLocalizations.of(context).t('additionalDetails'),
                       style: GoogleFonts.inter(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w600,
@@ -652,7 +657,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                       controller: _maxAttendeesController,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
-                        labelText: 'Max Attendees (0 for unlimited)',
+                        labelText:
+                            AppLocalizations.of(context).t('maxAttendeesLabel'),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -663,8 +669,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     TextFormField(
                       controller: _speakersController,
                       decoration: InputDecoration(
-                        labelText: 'Speakers (comma separated)',
-                        hintText: 'Dr. John Doe, Prof. Jane Smith',
+                        labelText:
+                            AppLocalizations.of(context).t('speakersLabel'),
+                        hintText:
+                            AppLocalizations.of(context).t('speakersHint'),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -673,7 +681,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     ),
                     SizedBox(height: 2.h),
                     SwitchListTile(
-                      title: const Text('Requires Registration'),
+                      title: Text(AppLocalizations.of(context)
+                          .t('requiresRegistration')),
                       value: _requiresRegistration,
                       onChanged: (value) {
                         setState(() {
@@ -685,8 +694,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                       TextFormField(
                         controller: _registrationUrlController,
                         decoration: InputDecoration(
-                          labelText: 'Registration URL',
-                          hintText: 'https://forms.example.com/event-reg',
+                          labelText: AppLocalizations.of(context)
+                              .t('registrationUrlLabel'),
+                          hintText: AppLocalizations.of(context)
+                              .t('registrationUrlHint'),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -697,8 +708,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     TextFormField(
                       controller: _imageUrlController,
                       decoration: InputDecoration(
-                        labelText: 'Image URL (Optional)',
-                        hintText: 'https://example.com/event-banner.jpg',
+                        labelText: AppLocalizations.of(context)
+                            .t('imageUrlEventLabel'),
+                        hintText:
+                            AppLocalizations.of(context).t('imageUrlEventHint'),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -709,8 +722,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     TextFormField(
                       controller: _agendaUrlController,
                       decoration: InputDecoration(
-                        labelText: 'Agenda URL (Optional)',
-                        hintText: 'Link to detailed agenda',
+                        labelText:
+                            AppLocalizations.of(context).t('agendaUrlLabel'),
+                        hintText:
+                            AppLocalizations.of(context).t('agendaUrlHint'),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -747,7 +762,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                           ),
                         )
                       : Text(
-                          'Create Event',
+                          AppLocalizations.of(context).t('eventCreateAppBar'),
                           style: GoogleFonts.inter(
                             fontSize: 14.sp,
                             fontWeight: FontWeight.w600,

@@ -5,6 +5,7 @@ import 'package:sizer/sizer.dart';
 import '../../../models/post.dart';
 import '../../../services/posts_service.dart';
 import './post_card_widget.dart';
+import '../../../l10n/app_localizations.dart';
 
 class SearchTabWidget extends StatefulWidget {
   final void Function(String postId, bool isLiked)? onPostLikeChanged;
@@ -67,6 +68,7 @@ class _SearchTabWidgetState extends State<SearchTabWidget> {
   }
 
   Widget _buildSearchResults() {
+    final l10n = AppLocalizations.of(context);
     if (_isSearching) {
       return const Center(
         child: CircularProgressIndicator(),
@@ -85,7 +87,7 @@ class _SearchTabWidgetState extends State<SearchTabWidget> {
             ),
             SizedBox(height: 2.h),
             Text(
-              'Search failed',
+              l10n.t('searchFailed'),
               style: GoogleFonts.inter(
                 fontSize: 16.sp,
                 fontWeight: FontWeight.w600,
@@ -118,7 +120,7 @@ class _SearchTabWidgetState extends State<SearchTabWidget> {
             ),
             SizedBox(height: 2.h),
             Text(
-              'Search Posts',
+              l10n.t('searchPostsTitle'),
               style: GoogleFonts.inter(
                 fontSize: 18.sp,
                 fontWeight: FontWeight.w600,
@@ -127,7 +129,7 @@ class _SearchTabWidgetState extends State<SearchTabWidget> {
             ),
             SizedBox(height: 1.h),
             Text(
-              'Enter keywords to find posts',
+              l10n.t('searchPostsHint'),
               style: GoogleFonts.inter(
                 fontSize: 14.sp,
                 color: Colors.grey[600],
@@ -151,7 +153,7 @@ class _SearchTabWidgetState extends State<SearchTabWidget> {
             ),
             SizedBox(height: 2.h),
             Text(
-              'No Results Found',
+              l10n.t('searchNoResults'),
               style: GoogleFonts.inter(
                 fontSize: 18.sp,
                 fontWeight: FontWeight.w600,
@@ -160,7 +162,7 @@ class _SearchTabWidgetState extends State<SearchTabWidget> {
             ),
             SizedBox(height: 1.h),
             Text(
-              'Try different keywords or browse all posts',
+              l10n.t('searchTryDifferent'),
               style: GoogleFonts.inter(
                 fontSize: 14.sp,
                 color: Colors.grey[600],
@@ -196,6 +198,7 @@ class _SearchTabWidgetState extends State<SearchTabWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 4.w),
       child: Column(
@@ -227,7 +230,7 @@ class _SearchTabWidgetState extends State<SearchTabWidget> {
               },
               onSubmitted: _performSearch,
               decoration: InputDecoration(
-                hintText: 'Search posts...',
+                hintText: l10n.t('searchHintField'),
                 hintStyle: GoogleFonts.inter(
                   fontSize: 14.sp,
                   color: Colors.grey[500],

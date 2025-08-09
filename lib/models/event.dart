@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 
 enum EventType {
   conference,
@@ -145,8 +146,8 @@ class Event {
       likeCount: json['like_count'] as int? ?? 0,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      categories: json['categories'] != null 
-          ? List<String>.from(json['categories']) 
+      categories: json['categories'] != null
+          ? List<String>.from(json['categories'])
           : [],
       isRegisteredByCurrentUser: json['is_registered'] as bool? ?? false,
       registrationCount: json['registration_count'] as int? ?? 0,
@@ -234,25 +235,35 @@ class Event {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       categories: categories ?? this.categories,
-      isRegisteredByCurrentUser: isRegisteredByCurrentUser ?? this.isRegisteredByCurrentUser,
+      isRegisteredByCurrentUser:
+          isRegisteredByCurrentUser ?? this.isRegisteredByCurrentUser,
       registrationCount: registrationCount ?? this.registrationCount,
     );
   }
 
-  String get timeUntilEvent {
+  String localizedTimeUntil(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final now = DateTime.now();
     final difference = eventDate.difference(now);
 
     if (difference.isNegative) {
-      return 'Event ended';
+      return l10n.t('eventEnded');
     } else if (difference.inDays > 7) {
-      return 'In ${difference.inDays} days';
+      return l10n
+          .t('eventInDays')
+          .replaceFirst('{days}', difference.inDays.toString());
     } else if (difference.inDays > 0) {
-      return 'In ${difference.inDays}d ${difference.inHours % 24}h';
+      return l10n
+          .t('eventInShort')
+          .replaceFirst('{days}', difference.inDays.toString())
+          .replaceFirst('{hours}', (difference.inHours % 24).toString());
     } else if (difference.inHours > 0) {
-      return 'In ${difference.inHours}h ${difference.inMinutes % 60}m';
+      return l10n
+          .t('eventInHours')
+          .replaceFirst('{hours}', difference.inHours.toString())
+          .replaceFirst('{minutes}', (difference.inMinutes % 60).toString());
     } else {
-      return 'Starting soon';
+      return l10n.t('eventSoon');
     }
   }
 

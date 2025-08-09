@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:sizer/sizer.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/event.dart';
 
 class EventCalendarWidget extends StatefulWidget {
@@ -13,7 +14,8 @@ class EventCalendarWidget extends StatefulWidget {
     Key? key,
     required this.events,
     this.onEventTap,
-    this.initialDate, required bool showNavigationButtons,
+    this.initialDate,
+    required bool showNavigationButtons,
   }) : super(key: key);
 
   @override
@@ -167,18 +169,24 @@ class _EventCalendarWidgetState extends State<EventCalendarWidget> {
             ),
           ),
           if (_getEventsForDay(_selectedDay ?? DateTime.now()).isNotEmpty)
-            Container(
-              padding: EdgeInsets.all(4.w),
-              child: Text(
-                'Events on ${DateFormat('MMM d, yyyy').format(_selectedDay ?? DateTime.now())}',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
+            Builder(builder: (context) {
+              final l10n = AppLocalizations.of(context);
+              final dateStr = DateFormat('MMM d, yyyy')
+                  .format(_selectedDay ?? DateTime.now());
+              return Container(
+                padding: EdgeInsets.all(4.w),
+                child: Text(
+                  l10n.t('eventsOnDate').replaceFirst('{date}', dateStr),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              );
+            }),
           Container(
             height: 200, // Altura fija para la lista de eventos
             child: ListView.builder(
               padding: EdgeInsets.symmetric(horizontal: 4.w),
-              itemCount: _getEventsForDay(_selectedDay ?? DateTime.now()).length,
+              itemCount:
+                  _getEventsForDay(_selectedDay ?? DateTime.now()).length,
               itemBuilder: (context, index) {
                 final event =
                     _getEventsForDay(_selectedDay ?? DateTime.now())[index];
@@ -195,19 +203,21 @@ class _EventCalendarWidgetState extends State<EventCalendarWidget> {
   }
 
   Widget _buildCalendarHeader() {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: EdgeInsets.all(4.w),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'Event Calendar',
+            l10n.t('eventCalendar'),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
           ),
           Text(
-            '${_getEventsForDay(_focusedDay).length} events',
+            l10n.t('eventsCount').replaceFirst(
+                '{count}', _getEventsForDay(_focusedDay).length.toString()),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).primaryColor,
                 ),
@@ -248,7 +258,7 @@ class CalendarEventCard extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
         subtitle: Text(
-          '${event.timeUntilEvent} • ${event.location}',
+          '${event.localizedTimeUntil(context)} • ${event.location}',
           style: Theme.of(context).textTheme.bodySmall,
         ),
         trailing: event.requiresRegistration
@@ -259,7 +269,9 @@ class CalendarEventCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  event.hasSpots ? 'Open' : 'Full',
+                  event.hasSpots
+                      ? AppLocalizations.of(context).t('eventOpen')
+                      : AppLocalizations.of(context).t('eventFull'),
                   style: const TextStyle(color: Colors.white, fontSize: 10),
                 ),
               )

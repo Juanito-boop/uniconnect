@@ -6,10 +6,11 @@ import '../../models/event.dart';
 import '../../services/events_service.dart';
 import 'event_calendar_widget.dart';
 import 'event_list_widget.dart';
+import '../../l10n/app_localizations.dart';
 
 class EventsTabWidget extends StatefulWidget {
   final Function(Event)? onEventTap;
-  
+
   const EventsTabWidget({
     Key? key,
     this.onEventTap,
@@ -19,7 +20,7 @@ class EventsTabWidget extends StatefulWidget {
   State<EventsTabWidget> createState() => _EventsTabWidgetState();
 }
 
-class _EventsTabWidgetState extends State<EventsTabWidget> 
+class _EventsTabWidgetState extends State<EventsTabWidget>
     with SingleTickerProviderStateMixin {
   late TabController _eventsTabController;
   List<Event> _events = [];
@@ -70,6 +71,7 @@ class _EventsTabWidgetState extends State<EventsTabWidget>
   }
 
   Widget _buildEventsHeader() {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: EdgeInsets.all(4.w),
       decoration: BoxDecoration(
@@ -88,7 +90,7 @@ class _EventsTabWidgetState extends State<EventsTabWidget>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'University Events',
+                l10n.t('eventsHeader'),
                 style: GoogleFonts.inter(
                   fontSize: 20.sp,
                   fontWeight: FontWeight.bold,
@@ -118,13 +120,15 @@ class _EventsTabWidgetState extends State<EventsTabWidget>
   }
 
   Widget _buildEventTypesFilter() {
+    final l10n = AppLocalizations.of(context);
     return SizedBox(
       height: 5.h,
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
-          _buildTypeChip('All', null),
-          ...EventType.values.map((type) => _buildTypeChip(type.displayName, type)),
+          _buildTypeChip(l10n.t('eventsAll'), null),
+          ...EventType.values
+              .map((type) => _buildTypeChip(type.displayName, type)),
         ],
       ),
     );
@@ -144,9 +148,7 @@ class _EventsTabWidgetState extends State<EventsTabWidget>
         margin: EdgeInsets.only(right: 2.w),
         padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
         decoration: BoxDecoration(
-          color: isSelected 
-              ? Theme.of(context).primaryColor 
-              : Colors.grey[200],
+          color: isSelected ? Theme.of(context).primaryColor : Colors.grey[200],
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
@@ -162,6 +164,7 @@ class _EventsTabWidgetState extends State<EventsTabWidget>
   }
 
   Widget _buildEventsContent() {
+    final l10n = AppLocalizations.of(context);
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -173,13 +176,14 @@ class _EventsTabWidgetState extends State<EventsTabWidget>
           children: [
             Icon(Icons.error_outline, size: 48, color: Colors.red[400]),
             SizedBox(height: 2.h),
-            Text('Error loading events', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+            Text(l10n.t('eventsError'),
+                style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
             SizedBox(height: 1.h),
             Text(_error, style: GoogleFonts.inter(color: Colors.grey[600])),
             SizedBox(height: 2.h),
             ElevatedButton(
               onPressed: _loadEvents,
-              child: const Text('Retry'),
+              child: Text(l10n.t('retry')),
             ),
           ],
         ),
@@ -194,7 +198,7 @@ class _EventsTabWidgetState extends State<EventsTabWidget>
             Icon(Icons.event_busy, size: 64, color: Colors.grey[400]),
             SizedBox(height: 2.h),
             Text(
-              'No upcoming events',
+              l10n.t('eventsNoUpcoming'),
               style: GoogleFonts.inter(
                 fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
@@ -202,7 +206,7 @@ class _EventsTabWidgetState extends State<EventsTabWidget>
             ),
             SizedBox(height: 1.h),
             Text(
-              'Check back later for new events!',
+              l10n.t('eventsCheckLater'),
               style: GoogleFonts.inter(color: Colors.grey[600]),
             ),
           ],
@@ -215,7 +219,7 @@ class _EventsTabWidgetState extends State<EventsTabWidget>
       child: _showCalendar
           ? EventCalendarWidget(
               events: _events,
-              onEventTap: widget.onEventTap, 
+              onEventTap: widget.onEventTap,
               showNavigationButtons: true,
             )
           : EventListWidget(

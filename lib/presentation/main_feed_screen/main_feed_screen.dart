@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sizer/sizer.dart';
 import 'package:uniconnect/presentation/events/events_tab_widget.dart';
+import '../../l10n/app_localizations.dart';
 
 import '../../models/post.dart';
 import '../../models/post_category.dart';
@@ -168,6 +169,7 @@ class _MainFeedScreenState extends State<MainFeedScreen>
   }
 
   Widget _buildFeedTab() {
+    final l10n = AppLocalizations.of(context);
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -177,7 +179,7 @@ class _MainFeedScreenState extends State<MainFeedScreen>
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
         Icon(Icons.error_outline, size: 48, color: Colors.red[400]),
         SizedBox(height: 2.h),
-        Text('Algo salió mal',
+        Text(l10n.t('errorGeneric'),
             style: GoogleFonts.inter(
                 fontSize: 16.sp,
                 fontWeight: FontWeight.w600,
@@ -187,7 +189,7 @@ class _MainFeedScreenState extends State<MainFeedScreen>
             style: GoogleFonts.inter(fontSize: 12.sp, color: Colors.grey[600]),
             textAlign: TextAlign.center),
         SizedBox(height: 2.h),
-        ElevatedButton(onPressed: _loadData, child: const Text('Reintentar')),
+        ElevatedButton(onPressed: _loadData, child: Text(l10n.t('retry'))),
       ]));
     }
     if (_filteredPosts.isEmpty) {
@@ -217,7 +219,7 @@ class _MainFeedScreenState extends State<MainFeedScreen>
               children: [
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  child: Text('Publicaciones destacadas',
+                  child: Text(l10n.t('featuredPosts'),
                       style: GoogleFonts.inter(
                           fontSize: 18.sp,
                           fontWeight: FontWeight.bold,
@@ -241,8 +243,8 @@ class _MainFeedScreenState extends State<MainFeedScreen>
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Text(
                 _selectedCategoryId == null
-                    ? 'Todas las publicaciones'
-                    : 'Publicaciones',
+                    ? l10n.t('allPosts')
+                    : l10n.t('posts'),
                 style: GoogleFonts.inter(
                     fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
@@ -270,6 +272,7 @@ class _MainFeedScreenState extends State<MainFeedScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: SafeArea(
@@ -282,11 +285,11 @@ class _MainFeedScreenState extends State<MainFeedScreen>
         // Tab bar
         FeedTabBarWidget(
           tabController: _tabController,
-          tabs: const [
-            'Inicio',
-            'Eventos',
-            'Buscar',
-            'Perfil',
+          tabs: [
+            l10n.t('homeTab'),
+            l10n.t('eventsTab'),
+            l10n.t('searchTab'),
+            l10n.t('profileTab'),
           ],
         ),
 

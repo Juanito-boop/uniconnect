@@ -5,6 +5,7 @@ import 'package:sizer/sizer.dart';
 import '../../models/post_category.dart';
 import '../../services/auth_service.dart';
 import '../../services/posts_service.dart';
+import '../../l10n/app_localizations.dart';
 
 class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({Key? key}) : super(key: key);
@@ -24,7 +25,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   bool _isFeatured = false;
   bool _isLoading = false;
   bool _isLoadingCategories = true;
-  String _error = '';
 
   @override
   void initState() {
@@ -46,13 +46,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       final isAdmin = await AuthService.instance.isCurrentUserAdmin();
       if (!isAdmin) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content:
-                  Text('Solo los administradores pueden crear publicaciones'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          final l10n = AppLocalizations.of(context);
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(l10n.t('adminOnlyPosts')),
+            backgroundColor: Colors.red,
+          ));
           Navigator.pop(context);
         }
         return;
@@ -62,12 +60,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       await _loadCategories();
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $error'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Error: $error'),
+          backgroundColor: Colors.red,
+        ));
         Navigator.pop(context);
       }
     }
@@ -77,7 +73,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     try {
       setState(() {
         _isLoadingCategories = true;
-        _error = '';
       });
 
       final categories = await PostsService.instance.getCategories();
@@ -91,7 +86,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     } catch (error) {
       if (mounted) {
         setState(() {
-          _error = error.toString();
           _isLoadingCategories = false;
         });
       }
@@ -118,24 +112,22 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('¡Publicación creada con éxito!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        final l10n = AppLocalizations.of(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(l10n.t('postCreatedSuccess')),
+          backgroundColor: Colors.green,
+        ));
         Navigator.pop(context);
       }
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Error al crear la publicación: ${error.toString().replaceAll('Exception: Failed to create post: ', '')}'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 4),
-          ),
-        );
+        final l10n = AppLocalizations.of(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+              '${l10n.t('postCreateErrorPrefix')} ${error.toString().replaceAll('Exception: Failed to create post: ', '')}'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
+        ));
       }
     } finally {
       if (mounted) {
@@ -188,7 +180,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Categorías (Opcional)',
+            AppLocalizations.of(context).t('categoriesOptional'),
             style: GoogleFonts.inter(
               fontSize: 14.sp,
               fontWeight: FontWeight.w600,
@@ -253,7 +245,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Create Post',
+          AppLocalizations.of(context).t('postCreateAppBar'),
           style: GoogleFonts.inter(
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
@@ -275,7 +267,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     ),
                   )
                 : Text(
-                    'Post',
+                    AppLocalizations.of(context).t('postActionPost'),
                     style: GoogleFonts.inter(
                       fontSize: 14.sp,
                       fontWeight: FontWeight.w600,
@@ -311,8 +303,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 child: TextFormField(
                   controller: _titleController,
                   decoration: InputDecoration(
-                    labelText: 'Post Title',
-                    hintText: 'Enter an engaging title for your post',
+                    labelText: AppLocalizations.of(context).t('postTitleLabel'),
+                    hintText: AppLocalizations.of(context).t('postTitleHint'),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -320,10 +312,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Title is required';
+                      return AppLocalizations.of(context)
+                          .t('postTitleRequired');
                     }
                     if (value.trim().length < 5) {
-                      return 'Title must be at least 5 characters';
+                      return AppLocalizations.of(context).t('postTitleMin');
                     }
                     return null;
                   },
@@ -351,8 +344,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   controller: _contentController,
                   maxLines: 8,
                   decoration: InputDecoration(
-                    labelText: 'Post Content',
-                    hintText: 'Write your post content here...',
+                    labelText:
+                        AppLocalizations.of(context).t('postContentLabel'),
+                    hintText: AppLocalizations.of(context).t('postContentHint'),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -360,10 +354,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Content is required';
+                      return AppLocalizations.of(context)
+                          .t('postContentRequired');
                     }
                     if (value.trim().length < 10) {
-                      return 'Content must be at least 10 characters';
+                      return AppLocalizations.of(context).t('postContentMin');
                     }
                     return null;
                   },
@@ -390,8 +385,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 child: TextFormField(
                   controller: _imageUrlController,
                   decoration: InputDecoration(
-                    labelText: 'Image URL (Optional)',
-                    hintText: 'https://example.com/image.jpg',
+                    labelText:
+                        AppLocalizations.of(context).t('imageUrlOptionalLabel'),
+                    hintText:
+                        AppLocalizations.of(context).t('imageUrlHintExample'),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -403,7 +400,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                               r'^https?://.*\.(jpg|jpeg|png|gif|webp)(\?.*)?$',
                               caseSensitive: false)
                           .hasMatch(value.trim())) {
-                        return 'Please enter a valid image URL';
+                        return AppLocalizations.of(context)
+                            .t('imageUrlInvalid');
                       }
                     }
                     return null;
@@ -445,7 +443,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Featured Post',
+                            AppLocalizations.of(context).t('featuredPostLabel'),
                             style: GoogleFonts.inter(
                               fontSize: 14.sp,
                               fontWeight: FontWeight.w600,
@@ -453,7 +451,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                             ),
                           ),
                           Text(
-                            'Featured posts appear at the top of the feed',
+                            AppLocalizations.of(context)
+                                .t('featuredPostDescription'),
                             style: GoogleFonts.inter(
                               fontSize: 11.sp,
                               color: Colors.grey[600],
@@ -501,7 +500,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                           ),
                         )
                       : Text(
-                          'Create Post',
+                          AppLocalizations.of(context).t('createPostButton'),
                           style: GoogleFonts.inter(
                             fontSize: 14.sp,
                             fontWeight: FontWeight.w600,
