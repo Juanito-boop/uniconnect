@@ -21,7 +21,7 @@ class FeedCategoryChipsWidget extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
-          _buildChip(context, 'All Posts', selectedCategoryId == null,
+          _buildChip(context, 'Todas', selectedCategoryId == null,
               () => onCategorySelected(null)),
           const SizedBox(width: 8),
           ...categories.map((cat) => Padding(

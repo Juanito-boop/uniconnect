@@ -177,7 +177,7 @@ class _MainFeedScreenState extends State<MainFeedScreen>
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
         Icon(Icons.error_outline, size: 48, color: Colors.red[400]),
         SizedBox(height: 2.h),
-        Text('Something went wrong',
+        Text('Algo salió mal',
             style: GoogleFonts.inter(
                 fontSize: 16.sp,
                 fontWeight: FontWeight.w600,
@@ -187,7 +187,7 @@ class _MainFeedScreenState extends State<MainFeedScreen>
             style: GoogleFonts.inter(fontSize: 12.sp, color: Colors.grey[600]),
             textAlign: TextAlign.center),
         SizedBox(height: 2.h),
-        ElevatedButton(onPressed: _loadData, child: const Text('Try Again')),
+        ElevatedButton(onPressed: _loadData, child: const Text('Reintentar')),
       ]));
     }
     if (_filteredPosts.isEmpty) {
@@ -217,7 +217,7 @@ class _MainFeedScreenState extends State<MainFeedScreen>
               children: [
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  child: Text('Featured Posts',
+                  child: Text('Publicaciones destacadas',
                       style: GoogleFonts.inter(
                           fontSize: 18.sp,
                           fontWeight: FontWeight.bold,
@@ -239,7 +239,10 @@ class _MainFeedScreenState extends State<MainFeedScreen>
         SliverToBoxAdapter(
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Text(_selectedCategoryId == null ? 'All Posts' : 'Posts',
+            child: Text(
+                _selectedCategoryId == null
+                    ? 'Todas las publicaciones'
+                    : 'Publicaciones',
                 style: GoogleFonts.inter(
                     fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
@@ -280,10 +283,10 @@ class _MainFeedScreenState extends State<MainFeedScreen>
         FeedTabBarWidget(
           tabController: _tabController,
           tabs: const [
-            'Feed',
-            'Events',
-            'Search',
-            'Profile',
+            'Inicio',
+            'Eventos',
+            'Buscar',
+            'Perfil',
           ],
         ),
 

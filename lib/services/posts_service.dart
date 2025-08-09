@@ -36,7 +36,7 @@ class PostsService {
         );
       }).toList();
     } catch (error) {
-      throw Exception('Failed to search posts: $error');
+      throw Exception('Error al buscar publicaciones: $error');
     }
   }
 
@@ -83,7 +83,7 @@ class PostsService {
         );
       }).toList();
     } catch (error) {
-      throw Exception('Failed to fetch posts: $error');
+      throw Exception('Error al obtener publicaciones: $error');
     }
   }
 
@@ -118,7 +118,7 @@ class PostsService {
         );
       }).toList();
     } catch (error) {
-      throw Exception('Failed to fetch featured posts: $error');
+      throw Exception('Error al obtener publicaciones destacadas: $error');
     }
   }
 
@@ -155,7 +155,7 @@ class PostsService {
         );
       }).toList();
     } catch (error) {
-      throw Exception('Failed to fetch posts by category: $error');
+      throw Exception('Error al obtener publicaciones por categoría: $error');
     }
   }
 
@@ -170,13 +170,13 @@ class PostsService {
     try {
       final currentUser = AuthService.instance.currentUser;
       if (currentUser == null) {
-        throw Exception('User not authenticated');
+        throw Exception('Usuario no autenticado');
       }
 
       // Check if user is admin
       final isAdmin = await AuthService.instance.isCurrentUserAdmin();
       if (!isAdmin) {
-        throw Exception('Only administrators can create posts');
+        throw Exception('Solo los administradores pueden crear publicaciones');
       }
 
       final postData = {
@@ -202,7 +202,7 @@ class PostsService {
 
       return post;
     } catch (error) {
-      throw Exception('Failed to create post: $error');
+      throw Exception('Error al crear la publicación: $error');
     }
   }
 
@@ -220,7 +220,8 @@ class PostsService {
       // Check if user is admin
       final isAdmin = await AuthService.instance.isCurrentUserAdmin();
       if (!isAdmin) {
-        throw Exception('Only administrators can update posts');
+        throw Exception(
+            'Solo los administradores pueden actualizar publicaciones');
       }
 
       final updateData = <String, dynamic>{
@@ -247,7 +248,7 @@ class PostsService {
 
       return Post.fromJson(response);
     } catch (error) {
-      throw Exception('Failed to update post: $error');
+      throw Exception('Error al actualizar la publicación: $error');
     }
   }
 
@@ -257,12 +258,13 @@ class PostsService {
       // Check if user is admin
       final isAdmin = await AuthService.instance.isCurrentUserAdmin();
       if (!isAdmin) {
-        throw Exception('Only administrators can delete posts');
+        throw Exception(
+            'Solo los administradores pueden eliminar publicaciones');
       }
 
       await _client.from('posts').delete().eq('id', postId);
     } catch (error) {
-      throw Exception('Failed to delete post: $error');
+      throw Exception('Error al eliminar la publicación: $error');
     }
   }
 
@@ -271,7 +273,7 @@ class PostsService {
     try {
       final currentUser = AuthService.instance.currentUser;
       if (currentUser == null) {
-        throw Exception('User not authenticated');
+        throw Exception('Usuario no autenticado');
       }
 
       // Check if already liked
@@ -297,7 +299,7 @@ class PostsService {
         });
       }
     } catch (error) {
-      throw Exception('Failed to toggle like: $error');
+      throw Exception('Error al actualizar el like: $error');
     }
   }
 
@@ -314,7 +316,7 @@ class PostsService {
           .map<PostCategory>((json) => PostCategory.fromJson(json))
           .toList();
     } catch (error) {
-      throw Exception('Failed to fetch categories: $error');
+      throw Exception('Error al obtener categorías: $error');
     }
   }
 

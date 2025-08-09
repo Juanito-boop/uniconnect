@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:sizer/sizer.dart';
 import '../../../models/user_profile.dart';
 import '../../../services/auth_service.dart';
+import '../../../routes/app_routes.dart';
 
 class ProfileTabWidget extends StatefulWidget {
   final bool isAuthenticated;
@@ -22,6 +23,7 @@ class _ProfileTabWidgetState extends State<ProfileTabWidget> {
   UserProfile? _userProfile;
   bool _isLoading = false;
   String _error = '';
+  bool _isLoggingOut = false;
 
   @override
   void initState() {
@@ -72,26 +74,18 @@ class _ProfileTabWidgetState extends State<ProfileTabWidget> {
   }
 
   Future<void> _signOut() async {
-    try {
-      await AuthService.instance.signOut();
+    if (_isLoggingOut) return;
+    setState(() => _isLoggingOut = true);
+    // Navegación inmediata (optimista) para eliminar retraso percibido y evitar render de vista no autenticada
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Signed out successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        Navigator.of(context)
+            .pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
       }
-    } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Sign out failed: $error'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+    });
+    // Cierre de sesión en background (sin esperar). Si falla, se ignora.
+    // ignore: unawaited_futures
+    AuthService.instance.signOut();
   }
 
   Widget _buildUnauthenticatedView() {
@@ -106,7 +100,7 @@ class _ProfileTabWidgetState extends State<ProfileTabWidget> {
           ),
           SizedBox(height: 3.h),
           Text(
-            'Welcome to UniConnect',
+            'Bienvenido a UniConnect',
             style: GoogleFonts.inter(
               fontSize: 20.sp,
               fontWeight: FontWeight.bold,
@@ -115,7 +109,7 @@ class _ProfileTabWidgetState extends State<ProfileTabWidget> {
           ),
           SizedBox(height: 1.h),
           Text(
-            'Sign in to view your profile and interact with posts',
+            'Inicia sesión para ver tu perfil e interactuar con publicaciones',
             style: GoogleFonts.inter(
               fontSize: 14.sp,
               color: Colors.grey[600],
@@ -134,7 +128,7 @@ class _ProfileTabWidgetState extends State<ProfileTabWidget> {
               ),
             ),
             child: Text(
-              'Sign In',
+              'Iniciar Sesión',
               style: GoogleFonts.inter(
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w600,
@@ -165,7 +159,7 @@ class _ProfileTabWidgetState extends State<ProfileTabWidget> {
             ),
             SizedBox(height: 2.h),
             Text(
-              'Error loading profile',
+              'Error al cargar el perfil',
               style: GoogleFonts.inter(
                 fontSize: 16.sp,
                 fontWeight: FontWeight.w600,
@@ -184,7 +178,7 @@ class _ProfileTabWidgetState extends State<ProfileTabWidget> {
             SizedBox(height: 2.h),
             ElevatedButton(
               onPressed: _loadUserProfile,
-              child: const Text('Try Again'),
+              child: const Text('Reintentar'),
             ),
           ],
         ),
@@ -203,7 +197,7 @@ class _ProfileTabWidgetState extends State<ProfileTabWidget> {
             ),
             SizedBox(height: 2.h),
             Text(
-              'Profile not found',
+              'Perfil no encontrado',
               style: GoogleFonts.inter(
                 fontSize: 16.sp,
                 fontWeight: FontWeight.w600,
@@ -282,7 +276,7 @@ class _ProfileTabWidgetState extends State<ProfileTabWidget> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    _userProfile!.isAdmin ? 'Administrator' : 'Student',
+                    _userProfile!.isAdmin ? 'Administrador' : 'Estudiante',
                     style: GoogleFonts.inter(
                       fontSize: 11.sp,
                       fontWeight: FontWeight.w600,
@@ -329,7 +323,7 @@ class _ProfileTabWidgetState extends State<ProfileTabWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Profile Details',
+                  'Detalles del Perfil',
                   style: GoogleFonts.inter(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
@@ -337,12 +331,12 @@ class _ProfileTabWidgetState extends State<ProfileTabWidget> {
                   ),
                 ),
                 SizedBox(height: 2.h),
-                _buildDetailRow('Email', _userProfile!.email),
+                _buildDetailRow('Correo', _userProfile!.email),
                 if (_userProfile!.studentId != null)
-                  _buildDetailRow('Student ID', _userProfile!.studentId!),
+                  _buildDetailRow('Matrícula', _userProfile!.studentId!),
                 if (_userProfile!.universityId != null)
-                  _buildDetailRow('University', _userProfile!.universityId!),
-                _buildDetailRow('Member since',
+                  _buildDetailRow('Universidad', _userProfile!.universityId!),
+                _buildDetailRow('Miembro desde',
                     '${_userProfile!.createdAt.day}/${_userProfile!.createdAt.month}/${_userProfile!.createdAt.year}'),
               ],
             ),
@@ -364,7 +358,7 @@ class _ProfileTabWidgetState extends State<ProfileTabWidget> {
                 ),
               ),
               child: Text(
-                'Sign Out',
+                'Cerrar Sesión',
                 style: GoogleFonts.inter(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
@@ -412,6 +406,7 @@ class _ProfileTabWidgetState extends State<ProfileTabWidget> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoggingOut) return const SizedBox.shrink();
     return widget.isAuthenticated
         ? _buildProfileView()
         : _buildUnauthenticatedView();

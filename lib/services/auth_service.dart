@@ -11,19 +11,19 @@ class AuthService {
 
   dynamic get _client => SupabaseService.instance.client;
 
-  // Get current user
+  // Obtener usuario actual
   dynamic get currentUser => _client.auth.currentUser;
 
-  // Get current session
+  // Obtener sesión actual
   dynamic get currentSession => _client.auth.currentSession;
 
-  // Check if user is authenticated
+  // Verificar si el usuario está autenticado
   bool get isAuthenticated => currentUser != null;
 
-  // Persist session token key
+  // Clave para persistir la sesión
   static const String _sessionKey = 'user_session_token';
 
-  // Restore session from SharedPreferences
+  // Restaurar sesión desde SharedPreferences
   Future<void> restoreSession() async {
     final prefs = await SharedPreferences.getInstance();
     final sessionString = prefs.getString(_sessionKey);
@@ -35,7 +35,7 @@ class AuthService {
     }
   }
 
-  // Sign up with email and password
+  // Registro con email y contraseña
   Future<dynamic> signUp({
     required String email,
     required String password,
@@ -57,11 +57,11 @@ class AuthService {
       );
       return response;
     } catch (error) {
-      throw Exception('Sign-up failed: $error');
+      throw Exception('Error al registrarse: $error');
     }
   }
 
-  // Sign in with email and password
+  // Iniciar sesión con email y contraseña
   Future<dynamic> signIn({
     required String email,
     required String password,
@@ -79,22 +79,22 @@ class AuthService {
       }
       return response;
     } catch (error) {
-      throw Exception('Sign-in failed: $error');
+      throw Exception('Error al iniciar sesión: $error');
     }
   }
 
-  // Sign out
+  // Cerrar sesión
   Future<void> signOut() async {
     try {
       await _client.auth.signOut();
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_sessionKey);
     } catch (error) {
-      throw Exception('Sign-out failed: $error');
+      throw Exception('Error al cerrar sesión: $error');
     }
   }
 
-  // Get current user profile
+  // Obtener perfil de usuario actual
   Future<UserProfile?> getCurrentUserProfile() async {
     try {
       if (!isAuthenticated) return null;
@@ -107,11 +107,11 @@ class AuthService {
 
       return UserProfile.fromJson(response);
     } catch (error) {
-      throw Exception('Failed to get user profile: $error');
+      throw Exception('Error al obtener el perfil: $error');
     }
   }
 
-  // Update user profile
+  // Actualizar perfil de usuario
   Future<UserProfile> updateUserProfile({
     String? fullName,
     String? department,
@@ -120,7 +120,7 @@ class AuthService {
   }) async {
     try {
       if (!isAuthenticated) {
-        throw Exception('User not authenticated');
+        throw Exception('Usuario no autenticado');
       }
 
       final updateData = <String, dynamic>{
@@ -142,23 +142,23 @@ class AuthService {
 
       return UserProfile.fromJson(response);
     } catch (error) {
-      throw Exception('Failed to update profile: $error');
+      throw Exception('Error al actualizar el perfil: $error');
     }
   }
 
-  // Reset password
+  // Restablecer contraseña
   Future<void> resetPassword(String email) async {
     try {
       await _client.auth.resetPasswordForEmail(email);
     } catch (error) {
-      throw Exception('Password reset failed: $error');
+      throw Exception('Error al restablecer la contraseña: $error');
     }
   }
 
-  // Listen to auth state changes
+  // Escuchar cambios de autenticación
   Stream<dynamic> get authStateChanges => _client.auth.onAuthStateChange;
 
-  // Check if current user is admin
+  // Verificar si el usuario actual es admin
   Future<bool> isCurrentUserAdmin() async {
     try {
       final profile = await getCurrentUserProfile();

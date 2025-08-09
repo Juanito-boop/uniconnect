@@ -51,19 +51,19 @@ class FeedTabBarWidget extends StatelessWidget {
     String label;
 
     switch (tabName.toLowerCase()) {
-      case 'feed':
+      case 'inicio':
         iconData = Icons.home;
-        label = 'Feed';
+        label = 'Inicio';
         break;
-      case 'events':
+      case 'eventos':
         iconData = Icons.event;
         label = 'Eventos';
         break;
-      case 'search':
+      case 'buscar':
         iconData = Icons.search;
         label = 'Buscar';
         break;
-      case 'profile':
+      case 'perfil':
         iconData = Icons.person;
         label = 'Perfil';
         break;

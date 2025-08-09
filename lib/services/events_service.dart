@@ -20,30 +20,27 @@ class EventsService {
   }) async {
     try {
       final userId = AuthService.instance.currentUser?.id;
-      
-      var query = _client
-          .from('events')
-          .select('''
+
+      var query = _client.from('events').select('''
             *,
             user_profiles!author_id(full_name),
             event_category_assignments!left(
               event_categories!left(id, name, color_code, icon_name)
             )
-          ''')
-          .eq('status', 'active');
+          ''').eq('status', 'active');
 
       if (upcomingOnly) {
         query = query.gte('event_date', DateTime.now().toIso8601String());
       }
-      
+
       if (startDate != null) {
         query = query.gte('event_date', startDate.toIso8601String());
       }
-      
+
       if (endDate != null) {
         query = query.lte('event_date', endDate.toIso8601String());
       }
-      
+
       if (type != null) {
         query = query.eq('event_type', type.name);
       }
@@ -63,34 +60,36 @@ class EventsService {
             .from('event_registrations')
             .select('event_id')
             .eq('user_id', userId);
-        
-        registeredEvents = Set<String>.from(registrations.map((r) => r['event_id'] as String));
+
+        registeredEvents =
+            Set<String>.from(registrations.map((r) => r['event_id'] as String));
       }
 
       // Obtener conteo de registros para cada evento
       final eventIds = response.map((e) => e['id'] as String).toList();
       Map<String, int> registrationCounts = {};
-      
+
       if (eventIds.isNotEmpty) {
         // Obtener todos los registros y contar manualmente
-        final allRegistrations = await _client
-            .from('event_registrations')
-            .select('event_id');
-        
+        final allRegistrations =
+            await _client.from('event_registrations').select('event_id');
+
         // Contar registros por evento
         for (final registration in allRegistrations) {
           final eventId = registration['event_id'] as String;
           if (eventIds.contains(eventId)) {
-            registrationCounts[eventId] = (registrationCounts[eventId] ?? 0) + 1;
+            registrationCounts[eventId] =
+                (registrationCounts[eventId] ?? 0) + 1;
           }
         }
       }
 
       return response.map<Event>((json) {
-        final categories = json['event_category_assignments'] != null 
+        final categories = json['event_category_assignments'] != null
             ? (json['event_category_assignments'] as List)
                 .where((assignment) => assignment['event_categories'] != null)
-                .map((assignment) => assignment['event_categories']['name'] as String)
+                .map((assignment) =>
+                    assignment['event_categories']['name'] as String)
                 .toList()
             : <String>[];
 
@@ -102,7 +101,7 @@ class EventsService {
         });
       }).toList();
     } catch (error) {
-      throw Exception('Failed to fetch events: $error');
+      throw Exception('Error al obtener eventos: $error');
     }
   }
 
@@ -126,12 +125,12 @@ class EventsService {
     try {
       final currentUser = AuthService.instance.currentUser;
       if (currentUser == null) {
-        throw Exception('User not authenticated');
+        throw Exception('Usuario no autenticado');
       }
 
       final isAdmin = await AuthService.instance.isCurrentUserAdmin();
       if (!isAdmin) {
-        throw Exception('Only administrators can create events');
+        throw Exception('Solo los administradores pueden crear eventos');
       }
 
       final eventData = {
@@ -154,11 +153,8 @@ class EventsService {
         'updated_at': DateTime.now().toIso8601String(),
       };
 
-      final response = await _client
-          .from('events')
-          .insert(eventData)
-          .select()
-          .single();
+      final response =
+          await _client.from('events').insert(eventData).select().single();
 
       if (categoryIds != null && categoryIds.isNotEmpty) {
         await _assignCategoriesToEvent(response['id'], categoryIds);
@@ -166,28 +162,28 @@ class EventsService {
 
       return Event.fromJson(response);
     } catch (error) {
-      throw Exception('Failed to create event: $error');
+      throw Exception('Error al crear el evento: $error');
     }
   }
 
   Future<void> registerForEvent(String eventId) async {
     try {
       final userId = AuthService.instance.currentUser?.id;
-      if (userId == null) throw Exception('User not authenticated');
+      if (userId == null) throw Exception('Usuario no autenticado');
 
       await _client.from('event_registrations').insert({
         'event_id': eventId,
         'user_id': userId,
       });
     } catch (error) {
-      throw Exception('Failed to register for event: $error');
+      throw Exception('Error al registrarse en el evento: $error');
     }
   }
 
   Future<void> cancelRegistration(String eventId) async {
     try {
       final userId = AuthService.instance.currentUser?.id;
-      if (userId == null) throw Exception('User not authenticated');
+      if (userId == null) throw Exception('Usuario no autenticado');
 
       await _client
           .from('event_registrations')
@@ -195,7 +191,7 @@ class EventsService {
           .eq('event_id', eventId)
           .eq('user_id', userId);
     } catch (error) {
-      throw Exception('Failed to cancel registration: $error');
+      throw Exception('Error al cancelar el registro: $error');
     }
   }
 
@@ -203,7 +199,7 @@ class EventsService {
     try {
       final currentUser = AuthService.instance.currentUser;
       if (currentUser == null) {
-        throw Exception('User not authenticated');
+        throw Exception('Usuario no autenticado');
       }
 
       final existingLike = await _client
@@ -226,14 +222,14 @@ class EventsService {
         });
       }
     } catch (error) {
-      throw Exception('Failed to toggle like: $error');
+      throw Exception('Error al actualizar el like: $error');
     }
   }
 
   Future<List<Event>> searchEvents(String query, {int limit = 50}) async {
     try {
       final userId = AuthService.instance.currentUser?.id;
-      
+
       final response = await _client
           .from('events')
           .select('''
@@ -256,34 +252,36 @@ class EventsService {
             .from('event_registrations')
             .select('event_id')
             .eq('user_id', userId);
-        
-        registeredEvents = Set<String>.from(registrations.map((r) => r['event_id'] as String));
+
+        registeredEvents =
+            Set<String>.from(registrations.map((r) => r['event_id'] as String));
       }
 
       // Obtener conteo de registros para cada evento
       final eventIds = response.map((e) => e['id'] as String).toList();
       Map<String, int> registrationCounts = {};
-      
+
       if (eventIds.isNotEmpty) {
         // Obtener todos los registros y contar manualmente
-        final allRegistrations = await _client
-            .from('event_registrations')
-            .select('event_id');
-        
+        final allRegistrations =
+            await _client.from('event_registrations').select('event_id');
+
         // Contar registros por evento
         for (final registration in allRegistrations) {
           final eventId = registration['event_id'] as String;
           if (eventIds.contains(eventId)) {
-            registrationCounts[eventId] = (registrationCounts[eventId] ?? 0) + 1;
+            registrationCounts[eventId] =
+                (registrationCounts[eventId] ?? 0) + 1;
           }
         }
       }
 
       return response.map<Event>((json) {
-        final categories = json['event_category_assignments'] != null 
+        final categories = json['event_category_assignments'] != null
             ? (json['event_category_assignments'] as List)
                 .where((assignment) => assignment['event_categories'] != null)
-                .map((assignment) => assignment['event_categories']['name'] as String)
+                .map((assignment) =>
+                    assignment['event_categories']['name'] as String)
                 .toList()
             : <String>[];
 
@@ -295,26 +293,21 @@ class EventsService {
         });
       }).toList();
     } catch (error) {
-      throw Exception('Failed to search events: $error');
+      throw Exception('Error al buscar eventos: $error');
     }
   }
 
   Future<Event?> getEventById(String eventId) async {
     try {
       final userId = AuthService.instance.currentUser?.id;
-      
-      final response = await _client
-          .from('events')
-          .select('''
+
+      final response = await _client.from('events').select('''
             *,
             user_profiles!author_id(full_name),
             event_category_assignments!left(
               event_categories!left(id, name, color_code, icon_name)
             )
-          ''')
-          .eq('id', eventId)
-          .eq('status', 'active')
-          .single();
+          ''').eq('id', eventId).eq('status', 'active').single();
 
       // Verificar si el usuario está registrado
       bool isRegistered = false;
@@ -325,7 +318,7 @@ class EventsService {
             .eq('event_id', eventId)
             .eq('user_id', userId)
             .maybeSingle();
-        
+
         isRegistered = registration != null;
       }
 
@@ -334,15 +327,16 @@ class EventsService {
           .from('event_registrations')
           .select('count')
           .eq('event_id', eventId);
-      
-      final registrationCount = registrationCountResponse.isNotEmpty 
-          ? registrationCountResponse.first['count'] as int 
+
+      final registrationCount = registrationCountResponse.isNotEmpty
+          ? registrationCountResponse.first['count'] as int
           : 0;
 
-      final categories = response['event_category_assignments'] != null 
+      final categories = response['event_category_assignments'] != null
           ? (response['event_category_assignments'] as List)
               .where((assignment) => assignment['event_categories'] != null)
-              .map((assignment) => assignment['event_categories']['name'] as String)
+              .map((assignment) =>
+                  assignment['event_categories']['name'] as String)
               .toList()
           : <String>[];
 
@@ -353,7 +347,7 @@ class EventsService {
         'is_registered': isRegistered,
       });
     } catch (error) {
-      throw Exception('Failed to fetch event: $error');
+      throw Exception('Error al obtener el evento: $error');
     }
   }
 
@@ -368,7 +362,7 @@ class EventsService {
           .map<EventCategory>((json) => EventCategory.fromJson(json))
           .toList();
     } catch (error) {
-      throw Exception('Failed to fetch categories: $error');
+      throw Exception('Error al obtener categorías: $error');
     }
   }
 

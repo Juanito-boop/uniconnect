@@ -48,7 +48,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Only administrators can create posts'),
+              content:
+                  Text('Solo los administradores pueden crear publicaciones'),
               backgroundColor: Colors.red,
             ),
           );
@@ -119,7 +120,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Post created successfully!'),
+            content: Text('¡Publicación creada con éxito!'),
             backgroundColor: Colors.green,
           ),
         );
@@ -130,7 +131,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                'Failed to create post: ${error.toString().replaceAll('Exception: Failed to create post: ', '')}'),
+                'Error al crear la publicación: ${error.toString().replaceAll('Exception: Failed to create post: ', '')}'),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 4),
           ),
@@ -187,7 +188,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Categories (Optional)',
+            'Categorías (Opcional)',
             style: GoogleFonts.inter(
               fontSize: 14.sp,
               fontWeight: FontWeight.w600,

@@ -34,7 +34,7 @@ class CustomErrorWidget extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                "Something went wrong",
+                "Algo salió mal",
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w500,
@@ -44,7 +44,7 @@ class CustomErrorWidget extends StatelessWidget {
               const SizedBox(height: 4),
               SizedBox(
                 child: const Text(
-                  'We encountered an unexpected error while processing your request.',
+                  'Ocurrió un error inesperado mientras procesábamos tu solicitud.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
@@ -64,7 +64,7 @@ class CustomErrorWidget extends StatelessWidget {
                 },
                 icon:
                     const Icon(Icons.arrow_back, size: 18, color: Colors.white),
-                label: const Text('Back'),
+                label: const Text('Volver'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.lightTheme.primaryColor,
                   foregroundColor: Colors.white,

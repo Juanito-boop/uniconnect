@@ -75,8 +75,7 @@ class _LoginScreenState extends State<LoginScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-                'Sign in failed: ${error.toString().replaceAll('Exception: Sign-in failed: ', '')}'),
+            content: Text('Error al iniciar sesión: ${_cleanError(error)}'),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 4),
           ),
@@ -115,7 +114,8 @@ class _LoginScreenState extends State<LoginScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Account created successfully! You can now sign in.'),
+            content:
+                Text('Cuenta creada con éxito. Ahora puedes iniciar sesión.'),
             backgroundColor: Colors.green,
             duration: Duration(seconds: 4),
           ),
@@ -135,8 +135,7 @@ class _LoginScreenState extends State<LoginScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-                'Sign up failed: ${error.toString().replaceAll('Exception: Sign-up failed: ', '')}'),
+            content: Text('Error al registrarse: ${_cleanError(error)}'),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 4),
           ),
@@ -162,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen>
             SizedBox(height: 4.h),
 
             Text(
-              'Welcome Back!',
+              '¡Bienvenido de nuevo!',
               style: GoogleFonts.inter(
                 fontSize: 24.sp,
                 fontWeight: FontWeight.bold,
@@ -171,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen>
             ),
             SizedBox(height: 1.h),
             Text(
-              'Sign in to your account to continue',
+              'Inicia sesión en tu cuenta para continuar',
               style: GoogleFonts.inter(
                 fontSize: 14.sp,
                 color: Colors.grey[600],
@@ -185,8 +184,8 @@ class _LoginScreenState extends State<LoginScreen>
               controller: _signInEmailController,
               keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
-                labelText: 'Email',
-                hintText: 'Enter your email',
+                labelText: 'Correo electrónico',
+                hintText: 'Ingresa tu correo',
                 prefixIcon: const Icon(Icons.email_outlined),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -194,11 +193,11 @@ class _LoginScreenState extends State<LoginScreen>
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Email is required';
+                  return 'El correo es obligatorio';
                 }
                 if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
                     .hasMatch(value)) {
-                  return 'Please enter a valid email';
+                  return 'Ingresa un correo válido';
                 }
                 return null;
               },
@@ -211,8 +210,8 @@ class _LoginScreenState extends State<LoginScreen>
               controller: _signInPasswordController,
               obscureText: _obscureSignInPassword,
               decoration: InputDecoration(
-                labelText: 'Password',
-                hintText: 'Enter your password',
+                labelText: 'Contraseña',
+                hintText: 'Ingresa tu contraseña',
                 prefixIcon: const Icon(Icons.lock_outlined),
                 suffixIcon: IconButton(
                   icon: Icon(
@@ -232,7 +231,7 @@ class _LoginScreenState extends State<LoginScreen>
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Password is required';
+                  return 'La contraseña es obligatoria';
                 }
                 return null;
               },
@@ -264,7 +263,7 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                       )
                     : Text(
-                        'Sign In',
+                        'Iniciar Sesión',
                         style: GoogleFonts.inter(
                           fontSize: 14.sp,
                           fontWeight: FontWeight.w600,
@@ -288,7 +287,7 @@ class _LoginScreenState extends State<LoginScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Demo Credentials:',
+                    'Credenciales de demostración:',
                     style: GoogleFonts.inter(
                       fontSize: 12.sp,
                       fontWeight: FontWeight.w600,
@@ -297,14 +296,14 @@ class _LoginScreenState extends State<LoginScreen>
                   ),
                   SizedBox(height: 0.5.h),
                   Text(
-                    'Admin: admin@university.edu / admin123',
+                    'Administrador: admin@university.edu / admin123',
                     style: GoogleFonts.inter(
                       fontSize: 11.sp,
                       color: Colors.blue[700],
                     ),
                   ),
                   Text(
-                    'Student: john.doe@student.edu / student123',
+                    'Estudiante: john.doe@student.edu / student123',
                     style: GoogleFonts.inter(
                       fontSize: 11.sp,
                       color: Colors.blue[700],
@@ -330,7 +329,7 @@ class _LoginScreenState extends State<LoginScreen>
             SizedBox(height: 2.h),
 
             Text(
-              'Create Account',
+              'Crear Cuenta',
               style: GoogleFonts.inter(
                 fontSize: 24.sp,
                 fontWeight: FontWeight.bold,
@@ -339,7 +338,7 @@ class _LoginScreenState extends State<LoginScreen>
             ),
             SizedBox(height: 1.h),
             Text(
-              'Join the university community',
+              'Únete a la comunidad universitaria',
               style: GoogleFonts.inter(
                 fontSize: 14.sp,
                 color: Colors.grey[600],
@@ -352,8 +351,8 @@ class _LoginScreenState extends State<LoginScreen>
             TextFormField(
               controller: _signUpFullNameController,
               decoration: InputDecoration(
-                labelText: 'Full Name',
-                hintText: 'Enter your full name',
+                labelText: 'Nombre completo',
+                hintText: 'Ingresa tu nombre completo',
                 prefixIcon: const Icon(Icons.person_outlined),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -361,7 +360,7 @@ class _LoginScreenState extends State<LoginScreen>
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Full name is required';
+                  return 'El nombre completo es obligatorio';
                 }
                 return null;
               },
@@ -374,8 +373,8 @@ class _LoginScreenState extends State<LoginScreen>
               controller: _signUpEmailController,
               keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
-                labelText: 'Email',
-                hintText: 'Enter your email',
+                labelText: 'Correo electrónico',
+                hintText: 'Ingresa tu correo',
                 prefixIcon: const Icon(Icons.email_outlined),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -383,11 +382,11 @@ class _LoginScreenState extends State<LoginScreen>
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Email is required';
+                  return 'El correo es obligatorio';
                 }
                 if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
                     .hasMatch(value)) {
-                  return 'Please enter a valid email';
+                  return 'Ingresa un correo válido';
                 }
                 return null;
               },
@@ -400,8 +399,8 @@ class _LoginScreenState extends State<LoginScreen>
               controller: _signUpPasswordController,
               obscureText: _obscureSignUpPassword,
               decoration: InputDecoration(
-                labelText: 'Password',
-                hintText: 'Create a password',
+                labelText: 'Contraseña',
+                hintText: 'Crea una contraseña',
                 prefixIcon: const Icon(Icons.lock_outlined),
                 suffixIcon: IconButton(
                   icon: Icon(
@@ -421,10 +420,10 @@ class _LoginScreenState extends State<LoginScreen>
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Password is required';
+                  return 'La contraseña es obligatoria';
                 }
                 if (value.length < 6) {
-                  return 'Password must be at least 6 characters';
+                  return 'La contraseña debe tener al menos 6 caracteres';
                 }
                 return null;
               },
@@ -444,46 +443,45 @@ class _LoginScreenState extends State<LoginScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Role',
+                    'Rol',
                     style: GoogleFonts.inter(
                       fontSize: 12.sp,
                       color: Colors.grey[600],
                     ),
                   ),
                   SizedBox(height: 1.h),
-                  Row(
+                  // Lista vertical (orden: Administrador luego Estudiante) para evitar saltos de línea
+                  Column(
                     children: [
-                      Expanded(
-                        child: RadioListTile<UserRole>(
-                          title: Text(
-                            'Student',
-                            style: GoogleFonts.inter(fontSize: 12.sp),
-                          ),
-                          value: UserRole.student,
-                          groupValue: _selectedRole,
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedRole = value!;
-                            });
-                          },
-                          contentPadding: EdgeInsets.zero,
+                      RadioListTile<UserRole>(
+                        title: Text(
+                          'Administrador',
+                          style: GoogleFonts.inter(fontSize: 12.sp),
                         ),
+                        value: UserRole.admin,
+                        groupValue: _selectedRole,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedRole = value!;
+                          });
+                        },
+                        contentPadding: EdgeInsets.zero,
+                        dense: true,
                       ),
-                      Expanded(
-                        child: RadioListTile<UserRole>(
-                          title: Text(
-                            'Admin',
-                            style: GoogleFonts.inter(fontSize: 12.sp),
-                          ),
-                          value: UserRole.admin,
-                          groupValue: _selectedRole,
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedRole = value!;
-                            });
-                          },
-                          contentPadding: EdgeInsets.zero,
+                      RadioListTile<UserRole>(
+                        title: Text(
+                          'Estudiante',
+                          style: GoogleFonts.inter(fontSize: 12.sp),
                         ),
+                        value: UserRole.student,
+                        groupValue: _selectedRole,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedRole = value!;
+                          });
+                        },
+                        contentPadding: EdgeInsets.zero,
+                        dense: true,
                       ),
                     ],
                   ),
@@ -497,8 +495,8 @@ class _LoginScreenState extends State<LoginScreen>
             TextFormField(
               controller: _signUpDepartmentController,
               decoration: InputDecoration(
-                labelText: 'Department (Optional)',
-                hintText: 'e.g., Computer Science',
+                labelText: 'Departamento (Opcional)',
+                hintText: 'Ej: Ingeniería Informática',
                 prefixIcon: const Icon(Icons.school_outlined),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -513,8 +511,8 @@ class _LoginScreenState extends State<LoginScreen>
               TextFormField(
                 controller: _signUpStudentIdController,
                 decoration: InputDecoration(
-                  labelText: 'Student ID (Optional)',
-                  hintText: 'Enter your student ID',
+                  labelText: 'Matrícula (Opcional)',
+                  hintText: 'Ingresa tu matrícula',
                   prefixIcon: const Icon(Icons.badge_outlined),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -548,7 +546,7 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                       )
                     : Text(
-                        'Create Account',
+                        'Crear Cuenta',
                         style: GoogleFonts.inter(
                           fontSize: 14.sp,
                           fontWeight: FontWeight.w600,
@@ -571,10 +569,8 @@ class _LoginScreenState extends State<LoginScreen>
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () => Navigator.pop(context),
-        ),
+        // Se elimina el botón de retroceso para esta pantalla
+        automaticallyImplyLeading: false,
         centerTitle: true,
         title: Text(
           'UniConnect',
@@ -594,8 +590,8 @@ class _LoginScreenState extends State<LoginScreen>
             fontWeight: FontWeight.w600,
           ),
           tabs: const [
-            Tab(text: 'Sign In'),
-            Tab(text: 'Sign Up'),
+            Tab(text: 'Iniciar Sesión'),
+            Tab(text: 'Registrarse'),
           ],
         ),
       ),
@@ -607,5 +603,11 @@ class _LoginScreenState extends State<LoginScreen>
         ],
       ),
     );
+  }
+
+  // Helper para limpiar mensajes de error
+  String _cleanError(Object error) {
+    final text = error.toString();
+    return text.replaceFirst('Exception: ', '');
   }
 }
